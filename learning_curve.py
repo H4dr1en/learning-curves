@@ -14,7 +14,7 @@ from matplotlib.offsetbox import AnchoredText
 
 class Predictor():
 
-    def __init__(self, name:str, func:callable, guess:list, scoring:callable=r2_score):
+    def __init__(self, name, func, guess, scoring=r2_score):
         """ Create a Predictor with a given {name}, {function} and initial parameters: {guess}. A custom scoring function can also be used."""
         self.name = name        
         self.func = func
@@ -30,7 +30,7 @@ class Predictor():
 
 class LearningCurve():
 
-    def __init__(self, predictors:Predictor=[]):
+    def __init__(self, predictors=[]):
         if len(predictors) > 0:
             self.predictors = predictors
         else:
@@ -81,7 +81,7 @@ class LearningCurve():
         return self.recorder["data"]
 
 
-    def get_predictor(self, name:str):
+    def get_predictor(self, name):
         """ Get the first predictor with matching {name}. Returns None if no predictor matches. """
         return next((P for P in self.predictors if P.name == name), None)
 
@@ -129,7 +129,7 @@ class LearningCurve():
         return P.name, P.score, P
 
 
-    def plot_lc(self, predictor:str=None, ylim=None, figsize=None, title=None, **kwargs):
+    def plot_lc(self, predictor=None, ylim=None, figsize=None, title=None, **kwargs):
         """ Plot the training and test learning curve of the LearningCurve data, and optionally a fitted function. 
             - predictor: The name of the predictor to use for fitting the learning curve. Can also be "all" or "best".
         """
@@ -139,7 +139,7 @@ class LearningCurve():
 
 
     def plot_cust_lc(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std, 
-                        predictor:str=None, ylim=None, figsize=None, title=None, **kwargs):
+                        predictor=None, ylim=None, figsize=None, title=None, **kwargs):
         """ Plot any training and test learning curve, and optionally a fitted function. """
     
         fig, ax = plt.subplots(1,1,figsize=figsize)
