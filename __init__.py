@@ -1,1 +1,1 @@
-name = "learning_curve"
+name = "learning_curves"
