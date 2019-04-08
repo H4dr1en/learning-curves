@@ -4,14 +4,24 @@ Learning-curves is a Python module that will help you calculating and ploting th
 
 Learning curves give an opportunity to diagnose bias and variance in supervised learning models, but also to visualize how training set size influence the performance of the models.
 
-To create such plots, first import the module with `import learning_curves`
+### Installation
 
-Then it is as simple as:
+```
+$ pip install git+https://github.com/H4dr1en/learning-curves.git
+```
+
+To create learning curve plots, first import the module with `import learning_curves`.
+
+### Usage
+
+It is as simple as:
 
 ```
 lc = LearningCurve()
 lc.get_lc(estimator, X, Y)
 ```
+Where `estimator` implements `fit(X,Y)` and `predict(X,Y)`.
+
 Output:
 
 ![alt text](https://github.com/H4dr1en/learning-curves/blob/dev/images/learning_curve_no_fit.png)
