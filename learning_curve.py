@@ -104,6 +104,7 @@ class LearningCurve():
 
 
     def best_predictor(self, x, y):
+        """ Find the best predictor for the test score learning curve."""
         first_p = self.predictors[0]
         if not all([first_p.scoring == P.scoring for P in self.predictors]):
             warnings.warn("Scoring functions should be the same accross Predictors in order to have comparable results.")
@@ -116,14 +117,12 @@ class LearningCurve():
 
 
     def plot_lc(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std, 
-                predictor:str="None", ylim=None, figsize=None, **kwargs):
-        """ Plot the training and test learning curve, and optionally a fitted function.
-            test_number: displayed as title of the plot
-        """
+                predictor:str="None", ylim=None, figsize=None, title=None, **kwargs):
+        """ Plot the training and test learning curve, and optionally a fitted function. """
     
         fig, ax = plt.subplots(1,1,figsize=figsize)
-        if 'test_name_y' in kwargs:
-            ax.set_title(kwargs["test_name_y"])
+        if 'title' is not None:
+            ax.set_title(title)
         if ylim is not None:
             ax.ylim(*ylim)
         ax.set_xlabel("Training examples")
@@ -161,6 +160,7 @@ class LearningCurve():
 
 
     def plot_fitted_curve(self, ax, P, x):
+        """ Add to ax figure a fitted curve. """
         # Plot fitted curve
         trialX = np.linspace(x[0], x[-1], 500)
         ax.plot(trialX, P(trialX), ls='--', label=P.name)
