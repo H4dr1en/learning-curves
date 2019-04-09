@@ -69,7 +69,7 @@ Output:
 ```
 ('exp_log', 0.999147437907635, <learning_curve.Predictor at 0x7feb9f2a4ac8>)
 ```
-You can either directly plot it with the `plot_lc` function:
+You can either directly plot it with the `plot` function:
 ```
 lc.plot(predictor="best")
 ```
