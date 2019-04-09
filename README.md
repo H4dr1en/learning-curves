@@ -38,7 +38,7 @@ On this example the green curve suggests that adding more data to the training s
 The green curve also shows a saturation near 0.95. We can easily fit a function to this curve:
 
 ```
-lc.plot(**lc.recorder["data"], predictor="best")
+lc.plot(predictor="best")
 ```
 Output:
 
