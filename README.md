@@ -24,7 +24,7 @@ Where `estimator` implements `fit(X,Y)` and `predict(X,Y)`.
 
 Output:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/dev/images/learning_curve_no_fit.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_no_fit.png)
 
 On this example the green curve suggests that adding more data to the training set is likely to improve a bit the model accuracy.
 The green curve also shows a saturation near 0.95. We can easily fit a function to this curve:
@@ -34,7 +34,7 @@ lc.plot(**lc.recorder["data"], predictor="best")
 ```
 Output:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/dev/images/learning_curve_simple.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_simple.png)
 
 Here we used a predefined function, `exp_log`, to fit the green curve. The R2 score is very close to 1, meaning that the fit is optimal. We can therefore use this curve to extrapolate the evolution of the accuracy with the training set size.
 
@@ -69,15 +69,26 @@ Output:
 ```
 ('exp_log', 0.999147437907635, <learning_curve.Predictor at 0x7feb9f2a4ac8>)
 ```
-You can either directly plot it with the `plot` function:
+
+### Plot the Predictors
+
+You can plot any `Predictor`s fitted function with the `plot` function:
 ```
 lc.plot(predictor="best")
 ```
 Ouput:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/dev/images/learning_curve_simple.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_simple.png)
 
 Note that this is the exact same output as calling `get_lc` because internally this function just calls `train` to compute the data points of the learning curve and then call `plot(predictor="best")`.
+
+You can also plot all of the `Predictor` curves:
+```
+lc.plot(predictor="all")
+```
+Output:
+
+![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_all.png)
 
 ## Documentation
 
