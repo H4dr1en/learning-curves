@@ -2,7 +2,7 @@
 
 Learning-curves is a Python module that will help you visualizing the learning curve of your models.
 
-[Learning curves](https://www.dataquest.io/blog/learning-curves-machine-learning/) give an opportunity to diagnose bias and variance in supervised learning models, but also to visualize how training set size influence the performance of the models.
+Learning curves give an opportunity to diagnose bias and variance in supervised learning models, but also to visualize how training set size influence the performance of the models (more informations [here](https://www.dataquest.io/blog/learning-curves-machine-learning/)).
 
 Such plots help you answer the following questions:
  - Do I have enough data?
