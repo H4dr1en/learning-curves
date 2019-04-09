@@ -30,7 +30,7 @@ On this example the green curve suggests that adding more data to the training s
 The green curve also shows a saturation near 0.95. We can easily fit a function to this curve:
 
 ```
-lc.plot_lc(**lc.recorder["data"], predictor="best")
+lc.plot(**lc.recorder["data"], predictor="best")
 ```
 Output:
 
@@ -71,10 +71,10 @@ Output:
 ```
 You can either directly plot it with the `plot_lc` function:
 ```
-lc.plot_lc(predictor="best")
+lc.plot(predictor="best")
 ```
 Ouput:
 
 ![alt text](https://github.com/H4dr1en/learning-curves/blob/dev/images/learning_curve_simple.png)
 
-Note that this is the exact same output as calling `get_lc` because internally this function just calls `train` to compute the data points of the learning curve and then call `plot_lr(predictor="best")`.
+Note that this is the exact same output as calling `get_lc` because internally this function just calls `train` to compute the data points of the learning curve and then call `plot(predictor="best")`.
