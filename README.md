@@ -40,7 +40,7 @@ Here we used a predefined function, `exp_log`, to fit the green curve. The R2 sc
 
 This also tells us how many data we should use to train our model to maximize performances and accuracy.
 
-#### Add custom functions to fit the learning curve
+### Add custom functions to fit the learning curve
 Such function are called `Predictor`. You can create a `Predictor` like this:
 ```
 predictor = Predictor("myPredictor", lambda x,a,b : a*x + b, [1,0])
@@ -59,7 +59,7 @@ lc.predictors.append(predictor)
 
 By default, two `Predictors` are instantiated: `exp_log` and `exp`. Some predictors perform better (R2 score is closer to 1) than others, depending on the dataset, the model and the value to be preditected.
 
-#### Find the best Predictor
+### Find the best Predictor
 
 To find the Predictor that will fit best your learning curve, we provide a `best_predictor` function:
 ```
