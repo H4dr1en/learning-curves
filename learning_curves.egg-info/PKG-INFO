@@ -12,14 +12,24 @@ Description: # learning-curves
         
         Learning curves give an opportunity to diagnose bias and variance in supervised learning models, but also to visualize how training set size influence the performance of the models.
         
-        To create such plots, first import the module with `import learning_curves`
+        ### Installation
         
-        Then it is as simple as:
+        ```
+        $ pip install git+https://github.com/H4dr1en/learning-curves.git
+        ```
+        
+        To create learning curve plots, first import the module with `import learning_curves`.
+        
+        ### Usage
+        
+        It is as simple as:
         
         ```
         lc = LearningCurve()
         lc.get_lc(estimator, X, Y)
         ```
+        Where `estimator` implements `fit(X,Y)` and `predict(X,Y)`.
+        
         Output:
         
         ![alt text](https://github.com/H4dr1en/learning-curves/blob/dev/images/learning_curve_no_fit.png)
@@ -38,7 +48,7 @@ Description: # learning-curves
         
         This also tells us how many data we should use to train our model to maximize performances and accuracy.
         
-        #### Add custom functions to fit the learning curve
+        ### Add custom functions to fit the learning curve
         Such function are called `Predictor`. You can create a `Predictor` like this:
         ```
         predictor = Predictor("myPredictor", lambda x,a,b : a*x + b, [1,0])
@@ -57,7 +67,7 @@ Description: # learning-curves
         
         By default, two `Predictors` are instantiated: `exp_log` and `exp`. Some predictors perform better (R2 score is closer to 1) than others, depending on the dataset, the model and the value to be preditected.
         
-        #### Find the best Predictor
+        ### Find the best Predictor
         
         To find the Predictor that will fit best your learning curve, we provide a `best_predictor` function:
         ```
