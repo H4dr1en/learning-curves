@@ -8,9 +8,17 @@ Author-email: h4dr1en@pm.me
 License: UNKNOWN
 Description: # learning-curves
         
-        Learning-curves is a Python module that will help you calculating and ploting the learning curve of a model.
+        Learning-curves is a Python module that will help you visualizing the learning curve of your models.
         
-        Learning curves give an opportunity to diagnose bias and variance in supervised learning models, but also to visualize how training set size influence the performance of the models.
+        [Learning curves](https://www.dataquest.io/blog/learning-curves-machine-learning/) give an opportunity to diagnose bias and variance in supervised learning models, but also to visualize how training set size influence the performance of the models.
+        
+        Such plots help you answer the following questions:
+         - Do I have enough data?
+         - What would be the best accuracy I would have if I had more data?
+         - Can I train my model with less data?
+         - Is my training set biased?
+         
+         Learning-curves will also help you fitting the learning curve to extrapolate and find the saturation value of the curve.
         
         ### Installation
         
@@ -32,17 +40,17 @@ Description: # learning-curves
         
         Output:
         
-        ![alt text](https://github.com/H4dr1en/learning-curves/blob/dev/images/learning_curve_no_fit.png)
+        ![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_no_fit.png)
         
         On this example the green curve suggests that adding more data to the training set is likely to improve a bit the model accuracy.
         The green curve also shows a saturation near 0.95. We can easily fit a function to this curve:
         
         ```
-        lc.plot(**lc.recorder["data"], predictor="best")
+        lc.plot(predictor="best")
         ```
         Output:
         
-        ![alt text](https://github.com/H4dr1en/learning-curves/blob/dev/images/learning_curve_simple.png)
+        ![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_simple.png)
         
         Here we used a predefined function, `exp_log`, to fit the green curve. The R2 score is very close to 1, meaning that the fit is optimal. We can therefore use this curve to extrapolate the evolution of the accuracy with the training set size.
         
@@ -77,15 +85,26 @@ Description: # learning-curves
         ```
         ('exp_log', 0.999147437907635, <learning_curve.Predictor at 0x7feb9f2a4ac8>)
         ```
-        You can either directly plot it with the `plot` function:
+        
+        ### Plot the Predictors
+        
+        You can plot any `Predictor`s fitted function with the `plot` function:
         ```
         lc.plot(predictor="best")
         ```
         Ouput:
         
-        ![alt text](https://github.com/H4dr1en/learning-curves/blob/dev/images/learning_curve_simple.png)
+        ![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_simple.png)
         
         Note that this is the exact same output as calling `get_lc` because internally this function just calls `train` to compute the data points of the learning curve and then call `plot(predictor="best")`.
+        
+        You can also plot all of the `Predictor` curves:
+        ```
+        lc.plot(predictor="all")
+        ```
+        Output:
+        
+        ![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_all.png)
         
         ## Documentation
         
