@@ -5,7 +5,8 @@ Summary: Python module allowing to easily calculate and plot the learning curve 
 Home-page: https://github.com/H4dr1en/learning-curves
 Author: H4dr1en
 Author-email: h4dr1en@pm.me
-License: UNKNOWN
+License: MIT
+Download-URL: https://github.com/user/reponame/archive/v_01.tar.gz
 Description: # learning-curves
         
         Learning-curves is a Python module that will help you visualizing the learning curve of your models.
@@ -184,8 +185,12 @@ Description: # learning-curves
         | LC.load                |                   |           |             | Load a `LearningCurve` object from disk.                                                                                                                                                       |
         |                        | path              | Path/str  | lc_data.pkl | Path to the file where the save is located                                                                                                                                                     |
         
+Keywords: Learning,curve,machine,learning,saturation,accuracy
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
 Description-Content-Type: text/markdown
