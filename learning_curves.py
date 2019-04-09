@@ -2,6 +2,8 @@
 import warnings
 import gc
 import time
+import dill
+from pathlib import Path
 
 from sklearn.metrics import r2_score
 import scipy.optimize as optimize
@@ -9,7 +11,6 @@ import numpy as np
 from sklearn.model_selection import train_test_split, ShuffleSplit, learning_curve
 
 import matplotlib.pyplot as plt
-from matplotlib.offsetbox import AnchoredText
 
 
 class Predictor():
@@ -26,14 +27,21 @@ class Predictor():
     def __call__(self, x, *args):
         return self.func(x,*args) if len(args) > 1 else self.func(x, *self.params)
 
+    def __repr__(self):
+        return f"{self.name} - params:{self.params} - score:{self.score}"
+
 
 class LearningCurve():
 
     def __init__(self, predictors=[], scoring=r2_score):
         
         self.predictors = [
-            Predictor("exp",     lambda x,a,b,c    : a-b*x**c,                  [1.3, 1.7,-.5]),
-            Predictor("exp_log", lambda x,a,b,c,m,n: a-b*x**c + m*np.log(x**n), [1.3, 1.7,-.5,1e-3,2])
+            Predictor("pow",        lambda x,a,b,c    : a - b*x**c,                  [1, 1.7,-.5]),
+            Predictor("pow_2",      lambda x,a,b,c,d  : a - (b*x+d)**c,              [1, 1.7,-.5, 1e-3]),
+            Predictor("pow_log",    lambda x,a,b,c,m,n: a - b*x**c + m*np.log(x**n), [1.3, 1.7,-.5,1e-3,2]),
+            Predictor("pow_log_2",  lambda x,a,b,c    : a / (1 + (x/np.exp(b))**c),  [1, 1.7,-.5]),
+            Predictor("log_lin",    lambda x,a,b      : np.log(a*np.log(x)+b),       [1, 1.7]),
+            Predictor("log",        lambda x,a,b      : a - b/np.log(x),             [1.6, 1.1])
         ]
         
         if len(predictors) > 0:
@@ -41,6 +49,17 @@ class LearningCurve():
 
         self.recorder = {}
         self.scoring = scoring
+
+
+    def save(self, path="./lc_data.pkl"):
+        """ Save the LearningCurve object as a pickle object in disk. Use dill to save because the object contains lambda functions. """
+        with open(path, 'wb') as f: dill.dump(self, f)
+
+
+    @staticmethod
+    def load(path="./lc_data.pkl"):
+        """ Load a LearningCurve object from disk. """
+        with open(path, 'rb') as f: return dill.load(f)
 
 
     def get_lc(self, estimator, X, Y, train_sizes=None, test_size=0.2, n_splits=3, verbose=1, n_jobs=-1, **kwargs):
@@ -91,7 +110,14 @@ class LearningCurve():
     def fit_all(self, x, y):
         """ Fit a curve with all the functions and retrieve r2 score if y_pred is finite.
             Returns an array of predictors with the updated params and score."""
-        return [self.fit(p,x,y) for p in self.predictors]
+
+        predictors = []
+        for p in self.predictors:
+            try:
+                predictors.append(self.fit(p,x,y))
+            except RuntimeError:
+                warnings.warn(f"{p.name}: Impossible to fit the learning curve (change initial gess).")
+        return predictors # [self.fit(p,x,y) for p in self.predictors] # No error handling
 
 
     def fit(self, predictor, x, y):
@@ -122,9 +148,9 @@ class LearningCurve():
 
         best_p = self.predictors[0]
         for P in self.fit_all(x,y):
-            if P.score > best_p.score: 
+            if P.score is not None and P.score > best_p.score: 
                 best_p = P
-        return P.name, P.score, P
+        return best_p
 
 
     def plot(self, predictor=None, **kwargs):
@@ -158,12 +184,11 @@ class LearningCurve():
 
         predictors_to_print = []
 
-        if predictor == "all":
-            self.fit_all(train_sizes, test_scores_mean)
-            predictors_to_print = self.predictors
+        if predictor == "all":            
+            predictors_to_print = self.fit_all(train_sizes, test_scores_mean)
         elif predictor == "best":    
             self.fit_all(train_sizes, test_scores_mean)
-            predictors_to_print.append(self.best_predictor_cust(train_sizes, test_scores_mean)[2])  
+            predictors_to_print.append(self.best_predictor_cust(train_sizes, test_scores_mean))  
         elif predictor is not None:
             P = self.get_predictor(predictor)
             if P is not None:
@@ -171,23 +196,16 @@ class LearningCurve():
                 predictors_to_print.append(P) 
 
         for predictor in predictors_to_print:
-            ax = self.plot_fitted_curve(ax, predictor, train_sizes) 
-
-        # Print score
-        if predictor is not None and scores is True:
-            text = ""
-            for i, predictor in enumerate(predictors_to_print):
-                text += f"{predictor.name}:{round(predictor.score,4)}" + ("\n" if i+1 < len(predictors_to_print) else "")
-            text = AnchoredText(text, loc=2)   
-            ax.add_artist(text)            
+            ax = self.plot_fitted_curve(ax, predictor, train_sizes, scores)          
                 
         ax.legend(loc="best")
         plt.close(fig)
         return fig
 
 
-    def plot_fitted_curve(self, ax, P, x):
+    def plot_fitted_curve(self, ax, P, x, score=True):
         """ Add to figure ax a fitted curve. """
         trialX = np.linspace(x[0], x[-1], 500)
-        ax.plot(trialX, P(trialX), ls='--', label=P.name)
+        label = P.name + f" ({round(P.score,4)})" if score is True and P.score is not None else ""
+        ax.plot(trialX, P(trialX), ls='--', label=label)
         return ax
