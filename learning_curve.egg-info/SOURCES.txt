@@ -1,6 +1,0 @@
-README.md
-setup.py
-learning_curve.egg-info/PKG-INFO
-learning_curve.egg-info/SOURCES.txt
-learning_curve.egg-info/dependency_links.txt
-learning_curve.egg-info/top_level.txt
