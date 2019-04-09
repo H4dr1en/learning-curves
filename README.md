@@ -44,7 +44,7 @@ Output:
 
 ![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_simple.png)
 
-Here we used a predefined function, `exp_log`, to fit the green curve. The R2 score is very close to 1, meaning that the fit is optimal. We can therefore use this curve to extrapolate the evolution of the accuracy with the training set size.
+Here we used a predefined function, `pow_2`, to fit the green curve. The R2 score is very close to 1, meaning that the fit is optimal. We can therefore use this curve to extrapolate the evolution of the accuracy with the training set size.
 
 This also tells us how many data we should use to train our model to maximize performances and accuracy.
 
