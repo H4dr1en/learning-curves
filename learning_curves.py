@@ -133,7 +133,7 @@ class LearningCurve():
         """
         if not 'data' in self.recorder:
             raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
-        return self.plot_cust(predictor=predictor, ylim=ylim, figsize=figsize, title=title, **self.recorder["data"], **kwargs)
+        return self.plot_cust(predictor=predictor, **self.recorder["data"], **kwargs)
 
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std, 
@@ -174,7 +174,7 @@ class LearningCurve():
             ax = self.plot_fitted_curve(ax, predictor, train_sizes) 
 
         # Print score
-        if scores:
+        if predictor is not None and scores is True:
             text = ""
             for i, predictor in enumerate(predictors_to_print):
                 text += f"{predictor.name}:{round(predictor.score,4)}" + ("\n" if i+1 < len(predictors_to_print) else "")
