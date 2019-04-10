@@ -115,6 +115,8 @@ Output:
 
 ![alt text](https://github.com/H4dr1en/learning-curves/blob/0.2/images/learning_curve_fit_sat_all.png)
 
+The horizontal red line shows the saturation of the curve. The intersection of the two blue lines shows the best accuracy we can get, given a certain `threshold` (see below).
+
 To retrieve the value of the best training set size:
 ```
 lc.threshold(predictor="best", saturation="best")
