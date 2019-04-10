@@ -32,19 +32,18 @@ Where `estimator` implements `fit(X,Y)` and `predict(X,Y)`.
 
 Output:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_no_fit.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/0.2/images/learning_curve_no_fit.png)
 
-On this example the green curve suggests that adding more data to the training set is likely to improve a bit the model accuracy.
-The green curve also shows a saturation near 0.95. We can easily fit a function to this curve:
+On this example the green curve suggests that adding more data to the training set is likely to improve a bit the model accuracy. The green curve also shows a saturation near 0.96. We can easily fit a function to this curve:
 
 ```
 lc.plot(predictor="best")
 ```
 Output:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_simple.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/0.2/images/learning_curve_simple.png)
 
-Here we used a predefined function, `pow_2`, to fit the green curve. The R2 score is very close to 1, meaning that the fit is optimal. We can therefore use this curve to extrapolate the evolution of the accuracy with the training set size.
+Here we used a predefined function, `pow`, to fit the green curve. The R2 score is very close to 1, meaning that the fit is optimal. We can therefore use this curve to extrapolate the evolution of the accuracy with the training set size.
 
 This also tells us how many data we should use to train our model to maximize performances and accuracy.
 
@@ -65,49 +64,37 @@ lc = LearningCurve([predictor])
 lc.predictors.append(predictor)
 ```
 
-By default, six `Predictors` are instantiated: 
+By default, 4 `Predictors` are instantiated: 
 ```
 self.predictors = [
-    Predictor("pow",        lambda x,a,b,c    : a - b*x**c,                  [1, 1.7,-.5]),
-    Predictor("pow_2",      lambda x,a,b,c,d  : a - (b*x+d)**c,              [1, 1.7,-.5, 1e-3]),
-    Predictor("pow_log",    lambda x,a,b,c,m,n: a - b*x**c + m*np.log(x**n), [1.3, 1.7,-.5,1e-3,2]),
-    Predictor("pow_log_2",  lambda x,a,b,c    : a / (1 + (x/np.exp(b))**c),  [1, 1.7,-.5]),
-    Predictor("log_lin",    lambda x,a,b      : np.log(a*np.log(x)+b),       [1, 1.7]),
-    Predictor("log",        lambda x,a,b      : a - b/np.log(x),             [1.6, 1.1])
+    Predictor("pow",        lambda x, a, b, c, d    : a - (b*x+d)**c,                [1, 1.7, -.5, 1e-3]),
+    Predictor("pow_log",    lambda x, a, b, c, m, n : a - b*x**c + m*np.log(x**n),   [1, 1.7, -.5, 1e-3, 1e-3], True),
+    Predictor("pow_log_2",  lambda x, a, b, c       : a / (1 + (x/np.exp(b))**c),    [1, 1.7, -.5]),
+    Predictor("inv_log",    lambda x, a, b          : a - b/np.log(x),               [1, 1.6])
 ]
 ```
-Some predictors perform better (R2 score is closer to 1) than others, depending on the dataset, the model and the value to be preditected.
+Some predictors perform better (R2 score is closer to 1) than others, depending on the dataset, the model and the value to be preditected. 
 
 ### Find the best Predictor
 
-To find the Predictor that will fit best your learning curve, we provide a `best_predictor` function:
+To find the Predictor that will fit best your learning curve, we can call `get_predictor` function:
 ```
-lc.best_predictor()
+lc.get_predictor("best")
 ```
 Output:
 ```
-('exp_log', 0.999147437907635, <learning_curve.Predictor at 0x7feb9f2a4ac8>)
+(pow [params:[   0.9588563    11.74747659   -0.36232639 -236.46115903]][score:0.9997458683912492])
 ```
 
 ### Plot the Predictors
 
 You can plot any `Predictor`s fitted function with the `plot` function:
 ```
-lc.plot(predictor="best")
-```
-Ouput:
-
-![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_simple.png)
-
-Note that this is the exact same output as calling `get_lc` because internally this function just calls `train` to compute the data points of the learning curve and then call `plot(predictor="best")`.
-
-You can also plot all of the `Predictor` curves:
-```
 lc.plot(predictor="all")
 ```
 Output:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_all.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/0.2/images/learning_curve_all.png)
 
 ### Save and load LearningCurve instances
 
@@ -117,6 +104,29 @@ lc.save("path/to/save.pkl")
 lc = LearningCurve.load("path/to/save.pkl")
 ```
 This internally uses the `dill` library to save the `LearningCurve` instance with all the `Predictor`s.
+
+### Find the best training set size
+
+`learning-curves` will help you finding the best training set size by extrapolation of the best fitted curve:
+```
+lc.plot(predictor="all", saturation="best")
+```
+Output:
+
+![alt text](https://github.com/H4dr1en/learning-curves/blob/0.2/images/learning_curve_fit_sat_all.png)
+
+To retrieve the value of the best training set size:
+```
+lc.threshold(predictor="best", saturation="best")
+```
+Output:
+```
+(0.9589, 31668, 0.9493)
+```
+This tells us that the saturation value (the maximum accuracy we can get from this model without changing any other parameter) is `0.9589`. This value corresponds to an infinite number of samples in our training set! But with a threshold of `0.99` (this parameter can be changed with `threshold=x`), we can have an accuracy `0.9493` if our training set contains `31668` samples.
+
+Note: The saturation value is always the _second parameter_ of the function. Therefore, if you create your own `Predictor`, place the saturation factor in second position (called a in the predefined `Predictor`s). If the function of your custom `Predictor` is diverging, then no saturation value can be retrieven. In that case, pass `diverging=True` to the constructor of the `Predictor`. The saturation value will then be calculated considering the `max_scaling` parameter of the 
+`threshold_cust` function (see documentation for details). You should set this parameter to the maximum number of sample you can add to your training set.
 
 ## Documentation
 
