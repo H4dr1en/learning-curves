@@ -32,7 +32,7 @@ Where `estimator` implements `fit(X,Y)` and `predict(X,Y)`.
 
 Output:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/0.2/images/learning_curve_no_fit.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_no_fit.png)
 
 On this example the green curve suggests that adding more data to the training set is likely to improve a bit the model accuracy. The green curve also shows a saturation near 0.96. We can easily fit a function to this curve:
 
@@ -41,7 +41,7 @@ lc.plot(predictor="best")
 ```
 Output:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/0.2/images/learning_curve_simple.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_simple.png)
 
 Here we used a predefined function, `pow`, to fit the green curve. The R2 score is very close to 1, meaning that the fit is optimal. We can therefore use this curve to extrapolate the evolution of the accuracy with the training set size.
 
@@ -94,7 +94,7 @@ lc.plot(predictor="all")
 ```
 Output:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/0.2/images/learning_curve_all.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_all.png)
 
 ### Save and load LearningCurve instances
 
@@ -113,7 +113,7 @@ lc.plot(predictor="all", saturation="best")
 ```
 Output:
 
-![alt text](https://github.com/H4dr1en/learning-curves/blob/0.2/images/learning_curve_fit_sat_all.png)
+![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_fit_sat_all.png)
 
 The horizontal red line shows the saturation of the curve. The intersection of the two blue lines shows the best accuracy we can get, given a certain `threshold` (see below).
 
