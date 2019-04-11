@@ -18,14 +18,14 @@ Such plots help you answer the following questions:
 $ pip install learning-curves
 ```
 
-To create learning curve plots, first import the module with `import learning_curves`.
+To create learning curve plots, first import the module with `import learning_curves as LC`.
 
 ### Usage
 
 It is as simple as:
 
 ```
-lc = LearningCurve()
+lc = LC.LearningCurve()
 lc.get_lc(estimator, X, Y)
 ```
 Where `estimator` implements `fit(X,Y)` and `predict(X,Y)`.
