@@ -22,7 +22,7 @@ setuptools.setup(
         'Intended Audience :: Science/Research'
     ],
     license='MIT',
-    download_url = 'https://github.com/H4dr1en/learning-curves/archive/0.2.0.tar.gz',
+    download_url = 'https://github.com/H4dr1en/learning-curves/archive/0.2.1.tar.gz',
     keywords = ['Learning', 'curve', 'machine', 'learning', 'saturation', 'accuracy'],
     install_requires=[
         'dill',
