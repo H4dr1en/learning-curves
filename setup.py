@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="learning-curves",
-    version="0.2.0",
+    version="0.2.1",
     author="H4dr1en",
     author_email="h4dr1en@pm.me",
     description="Python module allowing to easily calculate and plot the learning curve of a machine learning model and find the maximum expected accuracy",
