@@ -154,29 +154,22 @@ class LearningCurve():
         if isinstance(P, str) : P = self.get_predictor(P)
         return self.threshold_cust(P, self.recorder["data"]["train_sizes"], **kwargs)
 
-    def threshold_cust(self, P, x, threshold=0.99, max_scaling=3, force=False, **kwargs):
+    def threshold_cust(self, P, x, threshold=0.99, max_scaling=2, resolution=1e4, **kwargs):
         """ Find the training set size providing the highest accuracy up to a predefined threshold.
             P(x) = y and for x -> inf, y -> saturation value.
             This method approximates x_thresh such as P(x_thresh) = threshold * saturation value
             Returns (saturation value, x_thresh, y_thresh)
             max_scaling is use if the Predictor is diverging. It defines the order of magnitude for determining the saturation value.
             max_scaling is added to the order of magnitude of the maximum value of x.
-        """               
-        if max_scaling > 5 and not force:
-            raise ValueError("max_scaling > 5: this will consume a lot of memory. Use Force=True to continue.")
-
+        """              
         x_max_scale = LearningCurve.get_scale(x[-1])
-        max_val = 10 ** (x_max_scale + max_scaling)
-        step = 5 * (max_scaling - 2)
-        # using result results in bad approximation of opt_trn_size because the step if proportional to max_scaling
-        # np.linspace(x[0], max_val, 1e3, dtype=np.uintc) 
-        # using np.arange we can specify a step and be more precise, but we need to adjust the step with max_scaling
-        # otherwise we run out of memory
-        x = np.arange(x[0], max_val, step, dtype=np.uintc) 
+        max_val = 10 ** (x_max_scale + max_scaling)        
+        num_splits = min(resolution, max_val-x[0])
+        x = np.linspace(x[0], max_val, num_splits, dtype=np.uintc)
         y = P(x)
 
         if P.diverging:
-            warnings.warn("""Using a diverging Predictor. Because no saturation value exists for such Predictor, max_scaling will be use to determine the saturation value. You should adapt max_scaling to fit the maximum number of data you can fit.""")
+            warnings.warn("Using a diverging Predictor: virtual saturation value determined based on max_scaling value (adapt it to your needs).")
             sat_val = y[-1]
         else:
             sat_val = P.params[0]
@@ -185,7 +178,8 @@ class LearningCurve():
         i = np.argmax(y >= desired_acc)
         opt_trn_size, opt_acc = x[i], y[i]
 
-        return round(sat_val,4), round(opt_trn_size,4), round(opt_acc,4)
+        return int(opt_trn_size), round(opt_acc,4), round(sat_val,4)
+
 
     @staticmethod
     def get_scale(val):
@@ -218,7 +212,7 @@ class LearningCurve():
         return self.plot_cust(predictor=predictor, **self.recorder["data"], **kwargs)
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
-                  predictor=None, ylim=None, figsize=None, title=None, saturation=None, **kwargs):
+                  predictor=None, ylim=None, figsize=(12,6), title=None, saturation=None, **kwargs):
         """ Plot any training and test learning curve, and optionally a fitted function. """
 
         fig, ax = plt.subplots(1, 1, figsize=figsize)
@@ -272,8 +266,9 @@ class LearningCurve():
 
     def plot_saturation(self, ax, P, alpha=1, lw=1.3, **kwargs):
         """ Add saturation lines to a plot. """
-        sat, optx, opty = self.threshold(P, **kwargs)
-        ax.axhline(y=sat, c='r', alpha=alpha, lw=lw)
+        optx, opty, sat = self.threshold(P, **kwargs)
+        if P.diverging is False:
+            ax.axhline(y=sat, c='r', alpha=alpha, lw=lw)
         ax.axvline(x=optx, ls='-', alpha=alpha, lw=lw)
         ax.axhline(y=opty, ls='-', alpha=alpha, lw=lw)
         return ax, optx
