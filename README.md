@@ -101,7 +101,7 @@ Output:
 Because `Predictor` contains lambda functions, you can not simply save a `LearningCurve` instance. One possibility is to only save the data points of the curve inside `lc.recorder["data"]` and retrieve then later on. But then the custom predictors are not saved. Therefore it is recommended to use the `save` and `load` methods:
 ```
 lc.save("path/to/save.pkl")
-lc = LearningCurve.load("path/to/save.pkl")
+lc = LC.LearningCurve.load("path/to/save.pkl")
 ```
 This internally uses the `dill` library to save the `LearningCurve` instance with all the `Predictor`s.
 
