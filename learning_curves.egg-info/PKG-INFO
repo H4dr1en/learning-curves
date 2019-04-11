@@ -6,7 +6,7 @@ Home-page: https://github.com/H4dr1en/learning-curves
 Author: H4dr1en
 Author-email: h4dr1en@pm.me
 License: MIT
-Download-URL: https://github.com/H4dr1en/learning-curves/archive/0.1.0.tar.gz
+Download-URL: https://github.com/H4dr1en/learning-curves/archive/0.2.0.tar.gz
 Description: # learning-curves
         
         Learning-curves is Python module that extends [sklearn's learning curve feature](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.learning_curve.html). It will help you visualizing the learning curve of your models.
