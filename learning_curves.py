@@ -29,23 +29,21 @@ class Predictor():
         return self.func(x, *args) if len(args) > 1 else self.func(x, *self.params)
 
     def __repr__(self):
-        return f"{self.name} (params:{self.params},score:{self.score})"
+        return f"({self.name} [params:{self.params}][score:{self.score}])"
 
 
 class LearningCurve():
 
     def __init__(self, predictors=[], scoring=r2_score):
 
-        self.predictors = [
+        defaults_predictors = [
             Predictor("pow",        lambda x, a, b, c, d    : a - (b*x+d)**c,                [1, 1.7, -.5, 1e-3]),
             Predictor("pow_log",    lambda x, a, b, c, m, n : a - b*x**c + m*np.log(x**n),   [1, 1.7, -.5, 1e-3, 1e-3], True),
             Predictor("pow_log_2",  lambda x, a, b, c       : a / (1 + (x/np.exp(b))**c),    [1, 1.7, -.5]),
             Predictor("inv_log",    lambda x, a, b          : a - b/np.log(x),               [1, 1.6])
         ]
-
-        if len(predictors) > 0:
-            self.predictors.append(predictors)
-
+        
+        self.predictors = self.get_unique_list(defaults_predictors.append(predictors))
         self.recorder = {}
         self.scoring = scoring
 
@@ -60,13 +58,13 @@ class LearningCurve():
         with open(path, 'rb') as f:
             return dill.load(f)
 
-    def get_lc(self, estimator, X, Y, train_sizes=None, test_size=0.2, n_splits=3, verbose=1, n_jobs=-1, **kwargs):
-        """ Compute and plot the learning curve."""
+    def get_lc(self, estimator, X, Y, **kwargs):
+        """ Compute and plot the learning curve. See train and plot functions for parameters."""
 
-        self.train(estimator, X, Y, train_sizes=train_sizes, test_size=test_size, n_splits=n_splits, verbose=verbose, n_jobs=n_jobs, **kwargs)
-        return self.plot(predictor="best")
+        self.train(estimator, X, Y, **kwargs)
+        return self.plot(**kwargs)
 
-    def train(self, estimator, X, Y, train_sizes=None, test_size=0.2, n_splits=3, verbose=1, n_jobs=-1):
+    def train(self, estimator, X, Y, train_sizes=None, test_size=0.2, n_splits=3, verbose=1, n_jobs=-1, **kwargs):
         """ Compute the learning curve of an estimator over a dataset. Returns an object that can then be passed to plot_lc function.
             Parameters:
                 - estimator: object type that implements the “fit” and “predict” methods.
@@ -187,22 +185,21 @@ class LearningCurve():
         i = np.argmax(y >= desired_acc)
         opt_trn_size, opt_acc = x[i], y[i]
 
-        return sat_val, int(opt_trn_size), opt_acc
+        return round(sat_val,4), round(opt_trn_size,4), round(opt_acc,4)
 
     @staticmethod
     def get_scale(val):
         """ Returns the scale of a value. Eg: get_scale(1e-15) = -15 """
         return np.floor(np.log10(np.abs(val)))
 
-    def best_predictor(self, predictors=None, fit=True):
+    def best_predictor(self, **kwargs):
         """ Find the best predictor of the LearningCurve data for the test score learning curve."""
 
         if not 'data' in self.recorder:
             raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
-        predictors = predictors if predictors is not None else self.predictors
-        return self.best_predictor_cust(predictors, self.recorder["data"]["train_sizes"], self.recorder["data"]["test_scores_mean"], fit=fit)
+        return self.best_predictor_cust(self.predictors, self.recorder["data"]["train_sizes"], self.recorder["data"]["test_scores_mean"], **kwargs)
 
-    def best_predictor_cust(self, predictors, x, y, fit=True):
+    def best_predictor_cust(self, predictors, x, y, fit=True, **kwargs):
         """ Find the best predictor for the test score learning curve."""
 
         best_p = predictors[0]
@@ -221,7 +218,7 @@ class LearningCurve():
         return self.plot_cust(predictor=predictor, **self.recorder["data"], **kwargs)
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
-                  predictor=None, ylim=None, figsize=None, title=None, scores=True, saturation=None, **kwargs):
+                  predictor=None, ylim=None, figsize=None, title=None, saturation=None, **kwargs):
         """ Plot any training and test learning curve, and optionally a fitted function. """
 
         fig, ax = plt.subplots(1, 1, figsize=figsize)
@@ -260,16 +257,16 @@ class LearningCurve():
                 x_values = np.concatenate((x_values, extra_vals), axis=None)
 
         for P in predictors:
-            if P is not None: ax = self.plot_fitted_curve(ax, P, x_values, scores)
+            if P is not None: ax = self.plot_fitted_curve(ax, P, x_values, **kwargs)
 
         ax.legend(loc="best")
         plt.close(fig)
         return fig
 
-    def plot_fitted_curve(self, ax, P, x, score=True):
+    def plot_fitted_curve(self, ax, P, x, scores=True, **kwargs):
         """ Add to figure ax a fitted curve. """
         trialX = np.linspace(x[0], x[-1], 500)
-        label = P.name + f" ({round(P.score,4)})" if score is True and P.score is not None else ""
+        label = P.name + f" ({round(P.score,4)})" if scores is True and P.score is not None else ""
         ax.plot(trialX, P(trialX), ls='--', label=label)
         return ax
 
