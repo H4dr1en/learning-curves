@@ -43,7 +43,7 @@ class LearningCurve():
             Predictor("inv_log",    lambda x, a, b          : a - b/np.log(x),               [1, 1.6])
         ]
         
-        self.predictors = self.get_unique_list(defaults_predictors.append(predictors))
+        self.predictors = self.get_unique_list(defaults_predictors+predictors)
         self.recorder = {}
         self.scoring = scoring
 
