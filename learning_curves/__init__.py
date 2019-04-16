@@ -1,1 +1,2 @@
-from learning_curves.learning_curves import *
+from .learning_curves import *
+from .tools import load
