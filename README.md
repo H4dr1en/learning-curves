@@ -15,7 +15,7 @@ Such plots help you answer the following questions:
 ### Installation
 
 ```
-$ pip install learning-curves
+$ pip install git+https://github.com/H4dr1en/learning-curves#egg=learning-curves
 ```
 
 To create learning curve plots, first import the module with `import learning_curves as LC`.
