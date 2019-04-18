@@ -1,0 +1,7 @@
+learning_curves
+===============
+
+.. toctree::
+   :maxdepth: 4
+
+   learning_curves
