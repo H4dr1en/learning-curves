@@ -18,10 +18,6 @@ This module is still under development. Therefore it is recommended to use:
 ```
 $ pip install git+https://github.com/H4dr1en/learning-curves#egg=learning-curves
 ```
-When the module will be more robust, it will be published and will be accessible with:
-```
-$ pip install git+https://github.com/H4dr1en/learning-curves#egg=learning-curves
-```
 
 ### Usage
 
@@ -137,3 +133,5 @@ Note: The saturation value is always the _second parameter_ of the function. The
 ## Documentation
 
 Some functions have their `function_name_cust` equivalent. Calling the function without the `_cust` suffix will internally call the function with the `_cust` suffix with default parameters (such as the data points of the learning curves). Thanks to `kwargs`, you can pass exactly the same parameters to both functions.
+
+The documentation is available [here](https://h4dr1en.github.io/learning-curves/). 
