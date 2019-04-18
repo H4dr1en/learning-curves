@@ -64,13 +64,14 @@ lc = LearningCurve([predictor])
 lc.predictors.append(predictor)
 ```
 
-By default, 4 `Predictors` are instantiated: 
+By default, 5 `Predictors` are instantiated: 
 ```
 self.predictors = [
     Predictor("pow",        lambda x, a, b, c, d    : a - (b*x+d)**c,                [1, 1.7, -.5, 1e-3]),
     Predictor("pow_log",    lambda x, a, b, c, m, n : a - b*x**c + m*np.log(x**n),   [1, 1.7, -.5, 1e-3, 1e-3], True),
     Predictor("pow_log_2",  lambda x, a, b, c       : a / (1 + (x/np.exp(b))**c),    [1, 1.7, -.5]),
-    Predictor("inv_log",    lambda x, a, b          : a - b/np.log(x),               [1, 1.6])
+    Predictor("inv_log",    lambda x, a, b          : a - b/np.log(x),               [1, 1.6]),
+    Predictor("exp",        lambda x, a, b, c       : np.exp((a-1)+b/x +c*np.log(x)),[.9, -1e3, 1e-3], diverging=True)
 ]
 ```
 Some predictors perform better (R2 score is closer to 1) than others, depending on the dataset, the model and the value to be preditected. 
