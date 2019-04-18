@@ -62,7 +62,7 @@ class LearningCurve():
         return self.plot(**kwargs)
 
 
-    def train(self, estimator, X, Y, train_sizes=None, test_size=0.2, n_splits=5, verbose=1, n_jobs=-1, **kwargs):
+    def train(self, estimator, X, Y, train_sizes=None, test_size=0.15, n_splits=5, verbose=1, n_jobs=-1, **kwargs):
         """ Compute the learning curve of an estimator over a dataset.
 
             Args:
@@ -134,10 +134,10 @@ class LearningCurve():
             Returns:
                 list: an array of predictors with the updated params and score.
         """
-        return self.fit_all_cust(self.recorder["train_sizes"], self.recorder["test_mean_scores"], self.predictors)
+        return self.fit_all_cust(self.recorder["train_sizes"], self.recorder["test_mean_scores"], self.predictors, sigma=self.recorder["test_scores_std"], **kwargs)
 
 
-    def fit_all_cust(self, x, y, predictors):
+    def fit_all_cust(self, x, y, predictors, **kwargs):
         """ Fit a curve with all the predictors and retrieve score if y_pred is finite.
 
             Args:                
@@ -149,30 +149,32 @@ class LearningCurve():
         results = []
         for p in predictors:
             try:
-                results.append(self.fit(p, x, y))
+                results.append(self.fit(p, x, y, **kwargs))
             except RuntimeError:
                 warnings.warn(f"{p.name}: Impossible to fit the learning curve (change initial gess).")
         return results  # [self.fit(p,x,y) for p in self.predictors] # No error handling
 
 
-    def fit(self, P, x, y):
+    def fit(self, P, x, y, **kwargs):
         """ Fit a curve with a predictor, compute  and save the score of the fit.
 
             Args:                
                 x (list): 1D array (list) representing the training sizes
                 y (list): 1D array (list) representing the test scores
+                kwargs (dict): Parameters that will be forwarded to Scipy curve_fit.
             Returns:                
                 Predictor: The Predictor with the updated params and score. Score will be None if a ValueError exception occures while computing the score.
         """
         assert isinstance(P, Predictor), "The given Predictor is not a Predictor object."
 
         # Enforce parameter a to be in [0,1] if Predictor is converging
-        bounds = (-np.inf, np.inf) if P.diverging else ([0]+[-np.inf] * (len(P.params) - 1), [1]+[np.inf] * (len(P.params) - 1))
+        #bounds = (-np.inf, np.inf) if P.diverging else ([0]+[-np.inf] * (len(P.params) - 1), [1]+[np.inf] * (len(P.params) - 1))
+        bounds = (-np.inf, np.inf) if P.diverging else ([-np.inf] * (len(P.params)), [1]+[np.inf] * (len(P.params) - 1))
         try:
             with warnings.catch_warnings():                
                 warnings.simplefilter("ignore", RuntimeWarning)
-                warnings.simplefilter("ignore", OptimizeWarning)                
-                P.params, P.cov = optimize.curve_fit(P, x, y, P.params, bounds=bounds)       
+                warnings.simplefilter("ignore", OptimizeWarning)      
+                P.params, P.cov = optimize.curve_fit(P, x, y, P.params, bounds=bounds, **kwargs)       
             y_pred = P(x)
             P.score = self.scoring(y, y_pred) if np.isfinite(y_pred).all() else np.nan
         except ValueError:
@@ -181,7 +183,7 @@ class LearningCurve():
             return P
 
 
-    def threshold(self, P="best", **kwargs):
+    def threshold(self, threshold=0.99, P="best", **kwargs):
         """ See :meth:`threshold_cust` function. This function calls :meth:`threshold_cust` with the recorder data.
 
             Args:
@@ -194,10 +196,10 @@ class LearningCurve():
         """
         if len(self.recorder) == 0: raise RuntimeError("Recorder is empty. You must first compute learning curve data points using the train method.")
         if isinstance(P, str) : P = self.get_predictor(P)
-        return self.threshold_cust(P, self.recorder["train_sizes"], **kwargs)
+        return self.threshold_cust(P, self.recorder["train_sizes"], threshold=threshold, **kwargs)
 
 
-    def threshold_cust(self, P, x, threshold=0.99, max_scaling=2, resolution=1e4, strategies=dict(max_scaling=1), **kwargs):
+    def threshold_cust(self, P, x, threshold=0.99, max_scaling=1, resolution=1e4, strategies=dict(max_scaling=1, threshold=-0.01), **kwargs):
         """ Find the training set size providing the highest accuracy up to a predefined threshold. 
 
             P(x) = y and for x -> inf, y -> saturation value. This method approximates x_thresh such as P(x_thresh) = threshold * saturation value. 
@@ -217,7 +219,7 @@ class LearningCurve():
         return self.threshold_cust_inv(P,x,threshold, **kwargs) if callable(P.inv) else self.threshold_cust_approx(P,x,threshold, max_scaling, resolution, strategies, **kwargs)         
 
 
-    def threshold_cust_inv(self, P, x, threshold=0.99, **kwargs):
+    def threshold_cust_inv(self, P, x, threshold, **kwargs):
         """ Find the training set size providing the highest accuracy up to a desired threshold for a Predictor having an inverse function. See :meth:`threshold_cust`. """
         assert callable(P.inv), "P has no inverse function. You have to call threshold_cust_approx instead."
         assert threshold is not None, "No threshold value"
@@ -235,7 +237,7 @@ class LearningCurve():
         """ Find the training set size providing the highest accuracy up to a predefined threshold for a Predictor having no inverse function. See :meth:`threshold_cust`. """
         assert None not in [threshold, max_scaling, resolution], "Parameter has None value"
 
-        sat_acc = P.get_saturation(max_scaling) # if not P.diverging else y[-1]
+        sat_acc = P.get_saturation() # if not P.diverging else y[-1]
         desired_acc = sat_acc * threshold
 
         x_max_scale = get_scale(x[-1])
@@ -255,6 +257,8 @@ class LearningCurve():
         if i == 0:
             if strategies is not None: 
                 params = dict(threshold=threshold, max_scaling=max_scaling, resolution=resolution)
+                params = update_params(params, strategies)
+                #print(f"Can not find an x_thresh. Trying with parameters: {params}", flush=True)
                 try:
                     return self.threshold_cust_approx(P, x, strategies=strategies, **params)
                 except RecursionError:
@@ -344,7 +348,8 @@ class LearningCurve():
         ax.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha=0.1, color='#1f77b4')
         ax.fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.15, color="g")
         ax.plot(train_sizes, train_scores_mean, 'o-', color='#1f77b4', label="Training score")
-        ax.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
+        #ax.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
+        ax.errorbar(train_sizes, test_scores_mean, test_scores_std, fmt='o-', color="g", label="Cross-validation score")
 
         predictors = []
         if predictor is not None: 
@@ -356,7 +361,7 @@ class LearningCurve():
             predictors += saturation if isinstance(saturation, list) else [saturation]
 
         predictors = get_unique_list(predictors) # Remove duplicates
-        self.fit_all_cust(train_sizes, test_scores_mean, predictors)
+        self.fit_all_cust(train_sizes, test_scores_mean, predictors, sigma=test_scores_std)
 
         x_scale = get_scale(train_sizes[-1])
         val = 10**(x_scale + max_scaling)
@@ -424,13 +429,15 @@ class LearningCurve():
             Returns:
                 Matplotlib axes: The updated figure.
         """
-        optx, opty, sat, thresh = self.threshold(P, **kwargs)
+        optx, opty, sat, thresh = self.threshold(P=P, **kwargs)
         if not P.diverging and np.isfinite(sat): 
             ax.axhline(y=sat, c='r', alpha=alpha, lw=lw)
             err = np.sqrt(np.diag(P.cov))[0]
             ax.axhspan(sat - err, min(1,sat + err), alpha=0.05, color='r')        
         if np.isfinite(optx) and optx < max_abs: ax.axvline(x=optx, ls='-', alpha=alpha, lw=lw)
         if np.isfinite(opty): ax.axhline(y=opty, ls='-', alpha=alpha, lw=lw)
-        if np.isfinite(thresh): ax.text(1.02, opty, "{:.2e}".format(optx), va='center', ha="left", bbox=dict(facecolor="w",alpha=0.5), transform=ax.get_yaxis_transform())
+        if np.isfinite([thresh,opty]).all(): 
+            ax.text(1.02, opty, "{:.2e}".format(optx), va='center', ha="left", bbox=dict(facecolor="w",alpha=0.5), transform=ax.get_yaxis_transform())
+            ax.text(0.95, opty, f"{round(thresh*100,2)}%", color="#1f77b4", bbox=dict(color="w",alpha=0.8), va='center', ha="center", transform=ax.get_yaxis_transform())
         return ax
         

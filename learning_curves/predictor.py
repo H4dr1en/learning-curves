@@ -63,3 +63,8 @@ class Predictor():
         else: sat_acc = 1 # Default value if diverging Perdictor
 
         return sat_acc
+
+
+    def __eq__(self, other): 
+        if not isinstance(other, Predictor): return RuntimeError("Trying to compare Predictor with not Predictor object.")
+        return self.name == other.name

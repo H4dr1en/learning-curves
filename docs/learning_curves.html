@@ -203,13 +203,14 @@
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.fit">
-<code class="descname">fit</code><span class="sig-paren">(</span><em>P</em>, <em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.fit" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit</code><span class="sig-paren">(</span><em>P</em>, <em>x</em>, <em>y</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit a curve with a predictor, compute  and save the score of the fit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>list</em>) – 1D array (list) representing the training sizes</p></li>
 <li><p><strong>y</strong> (<em>list</em>) – 1D array (list) representing the test scores</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – Parameters that will be forwarded to Scipy curve_fit.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -240,7 +241,7 @@
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.fit_all_cust">
-<code class="descname">fit_all_cust</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>predictors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.fit_all_cust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.fit_all_cust" title="Permalink to this definition">¶</a></dt>
+<code class="descname">fit_all_cust</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>predictors</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.fit_all_cust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.fit_all_cust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit a curve with all the predictors and retrieve score if y_pred is finite.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -390,7 +391,7 @@ A threshold must be specified to calculate the optimal training set size.</p>
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.threshold">
-<code class="descname">threshold</code><span class="sig-paren">(</span><em>P='best'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.threshold" title="Permalink to this definition">¶</a></dt>
+<code class="descname">threshold</code><span class="sig-paren">(</span><em>threshold=0.99</em>, <em>P='best'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.threshold" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.threshold_cust" title="learning_curves.learning_curves.LearningCurve.threshold_cust"><code class="xref py py-meth docutils literal notranslate"><span class="pre">threshold_cust()</span></code></a> function. This function calls <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.threshold_cust" title="learning_curves.learning_curves.LearningCurve.threshold_cust"><code class="xref py py-meth docutils literal notranslate"><span class="pre">threshold_cust()</span></code></a> with the recorder data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -413,7 +414,7 @@ A threshold must be specified to calculate the optimal training set size.</p>
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.threshold_cust">
-<code class="descname">threshold_cust</code><span class="sig-paren">(</span><em>P</em>, <em>x</em>, <em>threshold=0.99</em>, <em>max_scaling=2</em>, <em>resolution=10000.0</em>, <em>strategies={'max_scaling': 1}</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.threshold_cust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.threshold_cust" title="Permalink to this definition">¶</a></dt>
+<code class="descname">threshold_cust</code><span class="sig-paren">(</span><em>P</em>, <em>x</em>, <em>threshold=0.99</em>, <em>max_scaling=1</em>, <em>resolution=10000.0</em>, <em>strategies={'max_scaling': 1</em>, <em>'threshold': -0.01}</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.threshold_cust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.threshold_cust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the training set size providing the highest accuracy up to a predefined threshold.</p>
 <p>P(x) = y and for x -&gt; inf, y -&gt; saturation value. This method approximates x_thresh such as P(x_thresh) = threshold * saturation value.</p>
 <dl class="field-list simple">
@@ -446,13 +447,13 @@ If an RecursionError raises, (None, None, sat_val, threshold) will be returned.<
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.threshold_cust_inv">
-<code class="descname">threshold_cust_inv</code><span class="sig-paren">(</span><em>P</em>, <em>x</em>, <em>threshold=0.99</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.threshold_cust_inv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.threshold_cust_inv" title="Permalink to this definition">¶</a></dt>
+<code class="descname">threshold_cust_inv</code><span class="sig-paren">(</span><em>P</em>, <em>x</em>, <em>threshold</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.threshold_cust_inv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.threshold_cust_inv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the training set size providing the highest accuracy up to a desired threshold for a Predictor having an inverse function. See <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.threshold_cust" title="learning_curves.learning_curves.LearningCurve.threshold_cust"><code class="xref py py-meth docutils literal notranslate"><span class="pre">threshold_cust()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>estimator</em>, <em>X</em>, <em>Y</em>, <em>train_sizes=None</em>, <em>test_size=0.2</em>, <em>n_splits=5</em>, <em>verbose=1</em>, <em>n_jobs=-1</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.train" title="Permalink to this definition">¶</a></dt>
+<code class="descname">train</code><span class="sig-paren">(</span><em>estimator</em>, <em>X</em>, <em>Y</em>, <em>train_sizes=None</em>, <em>test_size=0.15</em>, <em>n_splits=5</em>, <em>verbose=1</em>, <em>n_jobs=-1</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the learning curve of an estimator over a dataset.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -521,8 +522,7 @@ This value is calculated if the Predictor is diverging with inverse function.</p
 <dl class="function">
 <dt id="learning_curves.tools.get_unique_list">
 <code class="descclassname">learning_curves.tools.</code><code class="descname">get_unique_list</code><span class="sig-paren">(</span><em>predictors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/tools.html#get_unique_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.tools.get_unique_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a list of unique predictors.</p>
-<p>Two Predictors are</p>
+<dd><p>Return a list of unique predictors. Two Predictors are equal if they have the same name.</p>
 </dd></dl>
 
 <dl class="function">
@@ -541,6 +541,16 @@ is_strictly_increasing([0,1,2,1,4,5]) &gt; False</p>
 <dt id="learning_curves.tools.load">
 <code class="descclassname">learning_curves.tools.</code><code class="descname">load</code><span class="sig-paren">(</span><em>path='./lc_data.pkl'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/tools.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.tools.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a <code class="xref py py-class docutils literal notranslate"><span class="pre">learning_curves.LearningCurve</span></code> object from disk.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="learning_curves.tools.update_params">
+<code class="descclassname">learning_curves.tools.</code><code class="descname">update_params</code><span class="sig-paren">(</span><em>params</em>, <em>strategies</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/tools.html#update_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.tools.update_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the values of params based on the values in strategies.</p>
+<dl class="simple">
+<dt>Eg: update_params(params=dict(val1=1, val2=10), strategies=dict(val1=0.1, val2=-1)</dt><dd><p>&gt; {‘val1’: 1.1, ‘val2’: 9}</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

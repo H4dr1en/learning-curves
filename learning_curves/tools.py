@@ -30,13 +30,24 @@ def get_scale(val):
     
 
 def get_unique_list(predictors):
-    """ Return a list of unique predictors. 
-    
-        Two Predictors are """
+    """ Return a list of unique predictors. Two Predictors are equal if they have the same name."""
     results = []
     for P in predictors:
-        if not P.name in [p.name for p in results] : results.append(P)
+        #if not P.name in [p.name for p in results] : results.append(P)
+        if P not in results : results.append(P)
     return results
+
+
+def update_params(params, strategies):
+    """ Update the values of params based on the values in strategies. 
+    
+        Eg: update_params(params=dict(val1=1, val2=10), strategies=dict(val1=0.1, val2=-1)
+            > {'val1': 1.1, 'val2': 9}
+    """
+    for key, value in strategies.items():
+        if key in params: 
+            params[key] += value
+    return params
 
 
     

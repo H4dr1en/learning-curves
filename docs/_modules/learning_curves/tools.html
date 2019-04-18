@@ -188,13 +188,24 @@
     
 
 <div class="viewcode-block" id="get_unique_list"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.tools.get_unique_list">[docs]</a><span class="k">def</span> <span class="nf">get_unique_list</span><span class="p">(</span><span class="n">predictors</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Return a list of unique predictors. </span>
-<span class="sd">    </span>
-<span class="sd">        Two Predictors are &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Return a list of unique predictors. Two Predictors are equal if they have the same name.&quot;&quot;&quot;</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">P</span> <span class="ow">in</span> <span class="n">predictors</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">P</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span> <span class="p">:</span> <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+        <span class="c1">#if not P.name in [p.name for p in results] : results.append(P)</span>
+        <span class="k">if</span> <span class="n">P</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">results</span> <span class="p">:</span> <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="update_params"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.tools.update_params">[docs]</a><span class="k">def</span> <span class="nf">update_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">strategies</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Update the values of params based on the values in strategies. </span>
+<span class="sd">    </span>
+<span class="sd">        Eg: update_params(params=dict(val1=1, val2=10), strategies=dict(val1=0.1, val2=-1)</span>
+<span class="sd">            &gt; {&#39;val1&#39;: 1.1, &#39;val2&#39;: 9}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">strategies</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span> 
+            <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">params</span></div>
 
 
     

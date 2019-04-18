@@ -220,7 +220,12 @@
 
         <span class="k">else</span><span class="p">:</span> <span class="n">sat_acc</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Default value if diverging Perdictor</span>
 
-        <span class="k">return</span> <span class="n">sat_acc</span></div></div>
+        <span class="k">return</span> <span class="n">sat_acc</span></div>
+
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span> 
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Predictor</span><span class="p">):</span> <span class="k">return</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Trying to compare Predictor with not Predictor object.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span></div>
 </pre></div>
 
            </div>
