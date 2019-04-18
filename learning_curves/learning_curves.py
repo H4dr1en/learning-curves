@@ -20,6 +20,11 @@ from .predictor import Predictor
 class LearningCurve():
 
     def __init__(self, predictors=[], scoring=r2_score):
+        """ Provide helper functions to calculate, plot and fit learning curves. 
+    
+        Args:
+            predictors (list): List of Predictors
+            scoring (Callable): Function used to calculate scores of the model. (Default is sklearn r2_score)."""
 
         defaults_predictors = [
             Predictor("pow",        lambda x, a, b, c, d    : a - (b*x+d)**c,                  [.9, 1.7, -.5, 1e-3], 
@@ -42,37 +47,43 @@ class LearningCurve():
 
 
     def save(self, path="./lc_data.pkl"):
-        """ Save the LearningCurve object as a pickle object in disk. Use dill to save because the object contains lambda functions. """
+        """ Save the LearningCurve object as a pickle object in disk. 
+        
+            It uses the dill library to save the instance because the object contains lambda functions, that can not be pickled otherwise. 
+        """
         with open(path, 'wb') as f:
             dill.dump(self, f)
 
 
     def get_lc(self, estimator, X, Y, **kwargs):
-        """ Compute and plot the learning curve. See train and plot functions for parameters."""
+        """ Compute and plot the learning curve. See :meth:`train` and :meth:`plot` functions for parameters."""
 
         self.train(estimator, X, Y, **kwargs)
         return self.plot(**kwargs)
 
 
-    def train(self, estimator, X, Y, train_sizes=None, test_size=0.2, n_splits=3, verbose=1, n_jobs=-1, **kwargs):
-        """ Compute the learning curve of an estimator over a dataset. Returns an object that can then be passed to plot_lc function.
-            Parameters:
-                - estimator: object type that implements the “fit” and “predict” methods.
-                - train_sizes: See sklearn learning_curve function documentation. Default is 
-                - n_splits: int. Number of random cross validation calculated for each train size
-                - verbose: int. The higher, the more verbose.
-                - n_jobs: See sklearn learning_curve function documentation.
-        """
+    def train(self, estimator, X, Y, train_sizes=None, test_size=0.2, n_splits=5, verbose=1, n_jobs=-1, **kwargs):
+        """ Compute the learning curve of an estimator over a dataset.
 
+            Args:
+                estimator (Object): Must implement a `fit(X,Y)` and `predict(Y)` method.
+                train_sizes (list): See sklearn `learning_curve`_ function documentation. If None, default value will be used: ``[0.001, 0.003, 0.005, 0.007, 0.01, 0.05, 0.09, 0.13, 0.17, 0.2, 0.28, 0.36, 0.44, 0.52, 0.6, 0.68, 0.76, 0.84, 0.92, 1]``
+                n_split (int): Number of random cross validation calculated for each train size
+                verbose (int): The higher, the more verbose.
+                n_jobs (int): See sklearn `learning_curve`_ function documentation. 
+                kwargs (dict): Parameters that will be forwarded to internal functions.
+            Returns:
+                Dict: The resulting object can then be passed to :meth:`plot` function.
+        """
         if train_sizes is None:
-            # [0.001, 0.003, 0.005, 0.007, 0.01, 0.05, 0.09, 0.13, 0.17, 0.2, 0.28, 0.36, 0.44, 0.52, 0.6, 0.68, 0.76, 0.84, 0.92, 0.99999] # 1 isn't supported
-            train_sizes = [i/1000 for i in range(1, 9, 2)] + [i/100 for i in range(1, 20, 4)] + [i/50 for i in range(10, 47, 4)] + [0.99999]
+            # [0.001, 0.003, 0.005, 0.007, 0.01, 0.05, 0.09, 0.13, 0.17, 0.2, 0.28, 0.36, 0.44, 0.52, 0.6, 0.68, 0.76, 0.84, 0.92, 1]
+            train_sizes = [i/1000 for i in range(1, 9, 2)] + [i/100 for i in range(1, 20, 4)] + [i/50 for i in range(10, 51, 4)]
 
         cv = ShuffleSplit(n_splits=n_splits, test_size=test_size)
         t_start = time.perf_counter()
         train_sizes, train_scores, test_scores = learning_curve(estimator, X, Y,
                                                                 cv=cv, n_jobs=n_jobs, train_sizes=train_sizes, verbose=verbose)
-        self.recorder["data"] = {
+        self.recorder = {
             "total_size": len(X),
             "train_sizes": train_sizes,
             "train_scores_mean": np.mean(train_scores, axis=1),
@@ -84,13 +95,19 @@ class LearningCurve():
 
         gc.collect()
 
-        return self.recorder["data"]
+        return self.recorder
 
 
     def get_predictor(self, pred):
-        """ Get the first predictor with matching {pred}. Returns None if no predictor matches. 
-            pred can be: a string (Predictor name, "best" or "all"), a Predictor, a list of string (Predictor names), a list of Predictors"""
-
+        """ Get a :class:`learning_curves.predictor` from the list of the Predictors.
+            
+            Args:
+                pred (Predictor, str, list): Predictor name, "best" or "all", a Predictor, a list of string (Predictor names), a list of Predictors
+            Returns:
+                Predictor: The matching Predictor
+            Raises:
+                ValueError: If no matching Predictor is found
+        """
         if isinstance(pred, str):
             if pred == "best":
                 return self.best_predictor()
@@ -110,15 +127,25 @@ class LearningCurve():
 
 
     def fit_all(self, **kwargs):
-        """ Fit a curve with all the predictors and retrieve r2 score if y_pred is finite.
-            Returns an array of predictors with the updated params and score."""
-        return self.fit_all_cust(self.recorder["data"]["train_sizes"], self.recorder["data"]["test_mean_scores"], self.predictors)
+        """ Fit a curve with all the predictors using the recorder data and retrieve score if y_pred is finite.
+
+            Args:                
+                kwargs (dict): Parameters that will be forwarded to internal functions.
+            Returns:
+                list: an array of predictors with the updated params and score.
+        """
+        return self.fit_all_cust(self.recorder["train_sizes"], self.recorder["test_mean_scores"], self.predictors)
 
 
     def fit_all_cust(self, x, y, predictors):
-        """ Fit a curve with all the predictors and retrieve r2 score if y_pred is finite.
-            Returns an array of predictors with the updated params and score."""
+        """ Fit a curve with all the predictors and retrieve score if y_pred is finite.
 
+            Args:                
+                x (list): 1D array (list) representing the training sizes
+                y (list): 1D array (list) representing the test scores
+            Returns:
+                list: an array of predictors with the updated params and score.
+        """
         results = []
         for p in predictors:
             try:
@@ -129,9 +156,14 @@ class LearningCurve():
 
 
     def fit(self, P, x, y):
-        """ Fit a curve with a predictor and retrieve score (default:R2) if y_pred is finite.
-            Returns the predictor with the updated params and score."""
+        """ Fit a curve with a predictor, compute  and save the score of the fit.
 
+            Args:                
+                x (list): 1D array (list) representing the training sizes
+                y (list): 1D array (list) representing the test scores
+            Returns:                
+                Predictor: The Predictor with the updated params and score. Score will be None if a ValueError exception occures while computing the score.
+        """
         assert isinstance(P, Predictor), "The given Predictor is not a Predictor object."
 
         # Enforce parameter a to be in [0,1] if Predictor is converging
@@ -150,23 +182,43 @@ class LearningCurve():
 
 
     def threshold(self, P="best", **kwargs):
-        """ See threshold_cust documentation. This function calls threshold_cust with the LearningCurve data points."""
+        """ See :meth:`threshold_cust` function. This function calls :meth:`threshold_cust` with the recorder data.
 
-        if not 'data' in self.recorder: raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
+            Args:
+                P (Predictor, string): Predictor to use.
+                kwargs (dict): Parameters that will be forwarded to internal functions.
+            Returns:
+                Tuple: (x_thresh, y_thresh, sat_val, threshold). If P is diverging, the saturation value will be 1.
+            Raises:
+                RuntimeError: If the recorder is empty.
+        """
+        if len(self.recorder) == 0: raise RuntimeError("Recorder is empty. You must first compute learning curve data points using the train method.")
         if isinstance(P, str) : P = self.get_predictor(P)
-        return self.threshold_cust(P, self.recorder["data"]["train_sizes"], **kwargs)
+        return self.threshold_cust(P, self.recorder["train_sizes"], **kwargs)
 
 
     def threshold_cust(self, P, x, threshold=0.99, max_scaling=2, resolution=1e4, strategies=dict(max_scaling=1), **kwargs):
-       
+        """ Find the training set size providing the highest accuracy up to a predefined threshold. 
+
+            P(x) = y and for x -> inf, y -> saturation value. This method approximates x_thresh such as P(x_thresh) = threshold * saturation value. 
+
+            Args:
+                P (str, Predictor): The predictor to use for the calculation of the saturation value.    
+                x (array): Training set sizes
+                threshold (float): In [0.0, 1.0]. Percentage of the saturation value to use for the calculus of the best training set size.
+                max_scaling (float): Order of magnitude added to the order of magnitude of the maximum train set size. Generally, a value of 1-2 is enough.
+                resolution (float): Only considered for diverging Predictors without inverse function. The higher it is, the more accurate the value of the training set size will be.
+                strategies (dict): A dictionary of the values to add / substract to the other parameters in case a saturation value can not be found.
+                    If an RecursionError raises, (None, None, sat_val, threshold) will be returned.
+                kwargs (dict): Parameters that will be forwarded to internal functions.
+            Returns:
+                Tuple: (x_thresh, y_thresh, saturation_arrucacy, threshold)
+        """
         return self.threshold_cust_inv(P,x,threshold, **kwargs) if callable(P.inv) else self.threshold_cust_approx(P,x,threshold, max_scaling, resolution, strategies, **kwargs)         
 
 
     def threshold_cust_inv(self, P, x, threshold=0.99, **kwargs):
-        """ Find the training set size providing the highest accuracy up to a desired threshold for a Predictor having an inverse function.
-            P(x) = y and for x -> inf, y -> saturation value. Returns x_thresh such as P(x_thresh) = saturation value * threshold.
-            Returns (x_thresh, y_thresh, sat_val, threshold). If P is diverging, the saturation value will be approximated using a big number.
-        """
+        """ Find the training set size providing the highest accuracy up to a desired threshold for a Predictor having an inverse function. See :meth:`threshold_cust`. """
         assert callable(P.inv), "P has no inverse function. You have to call threshold_cust_approx instead."
         assert threshold is not None, "No threshold value"
 
@@ -176,16 +228,11 @@ class LearningCurve():
 
         if not np.isfinite(opt_trn_size): return np.nan, np.nan, sat_acc, threshold
 
-        return opt_trn_size, round(desired_acc,4), round(sat_acc,4), threshold
+        return round(opt_trn_size,0), round(desired_acc,4), round(sat_acc,4), threshold
 
 
     def threshold_cust_approx(self, P, x, threshold, max_scaling, resolution, strategies, **kwargs):
-        """ Find the training set size providing the highest accuracy up to a predefined threshold for a Predictor having no inverse function.
-            P(x) = y and for x -> inf, y -> saturation value. This method approximates x_thresh such as P(x_thresh) = threshold * saturation value.            
-            Returns (x_thresh, y_thresh, sat_val, threshold). If P is diverging, the saturation value will be approximated using a big number.
-            max_scaling is used if the Predictor is diverging. It defines the order of magnitude for determining the saturation value.
-            max_scaling is added to the order of magnitude of the maximum value of x.
-        """
+        """ Find the training set size providing the highest accuracy up to a predefined threshold for a Predictor having no inverse function. See :meth:`threshold_cust`. """
         assert None not in [threshold, max_scaling, resolution], "Parameter has None value"
 
         sat_acc = P.get_saturation(max_scaling) # if not P.diverging else y[-1]
@@ -217,45 +264,78 @@ class LearningCurve():
         
         else:
             opt_trn_size, opt_acc = X[i], y[i]
-            return opt_trn_size, round(opt_acc,4), round(sat_acc,4), threshold
+            return round(opt_trn_size,0), round(opt_acc,4), round(sat_acc,4), threshold
 
 
     def best_predictor(self, **kwargs):
-        """ Find the best predictor of the LearningCurve data for the test score learning curve."""
-
-        if not 'data' in self.recorder:
-            raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
-        return self.best_predictor_cust(self.predictors, self.recorder["data"]["train_sizes"], self.recorder["data"]["test_scores_mean"], **kwargs)
+        """ Find the Predictor having the best fit of the learning curve of the recorder data. See :meth:`best_predictor_cust` for parameters. """
+        if len(self.recorder) == 0: raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
+        return self.best_predictor_cust(self.predictors, self.recorder["train_sizes"], self.recorder["test_scores_mean"], **kwargs)
 
 
-    def best_predictor_cust(self, predictors, x, y, fit=True, prefer_conv_delta=0.002, **kwargs):
-        """ Find the best predictor for the test score learning curve."""
-
+    def best_predictor_cust(self, predictors, x, y, fit=True, prefer_conv_delta=2e-3, **kwargs):
+        """ Find the Predictor having the best fit of a learning curve. 
+        
+            Args:
+                predictors (list(Predictor)): A list of Predictors to consider.
+                x (array): 1D array (list) representing the training sizes
+                y (array): 1D array (list) representing the test scores
+                fit (bool): Fit all the Predictor before evaluating their parameters if True.
+                prefer_conv_delta (float): If the difference of the two best Predictor fit scores is lower than prefer_conv_delta, then if the converging Predict will be prefered (if any).
+                kwargs (dict): Parameters that will be forwarded to internal functions.
+            Returns:
+                Predictor: The Predicto having the best fit of the learning curve.
+        """
         best_p = None
         if fit is True : predictors = self.fit_all_cust(x, y, predictors)
         for P in predictors:
             if P.score is None: continue
             if best_p is None: best_p = P 
-            elif P.score > best_p.score: 
-                if P.diverging and not best_p.diverging:    # Prefer not diverging Predictors
-                    if P.score -  best_p.score > prefer_conv_delta:
-                        best_p = P
-                else: best_p = P
+            elif P.score + prefer_conv_delta >= best_p.score: 
+                if P.diverging:
+                    if best_p.diverging:
+                        if P.score > best_p.score: best_p = P
+                    else:
+                        if P.score - prefer_conv_delta > best_p.score: best_p = P
+                else:                    
+                    if best_p.diverging: best_p = P
+                    elif P.score > best_p.score: best_p = P
         return best_p
 
 
     def plot(self, predictor=None, **kwargs):
-        """ Plot the training and test learning curve of the LearningCurve data, and optionally a fitted function. 
-            - predictor: The name of the predictor or predictor to use for fitting the learning curve. Can also be "all" or "best".
+        """ Plot the training and test learning curves of the recorder data, with optionally fitted functions and saturation. See :meth:`plot_cust`:
+
+            Args:
+                predictor (str, list(str), Predictor, list(Predictor)): The predictor(s) to use for plotting the fitted curve. Can also be "all" and "best".
+                kwargs (dict): Parameters that will be forwarded to internal functions.
+            Returns:
+                A Matplotlib figure of the result.
+            Raises:
+                RuntimeError: If the recorder is empty.
         """
-        if not 'data' in self.recorder:
-            raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
-        return self.plot_cust(predictor=predictor, **self.recorder["data"], **kwargs)
+        if len(self.recorder) == 0: raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
+        return self.plot_cust(predictor=predictor, **self.recorder, **kwargs)
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
-                  predictor=None, ylim=(-0.05,1.05), figsize=(12,6), title=None, saturation=None, max_scaling=2, **kwargs):
-        """ Plot any training and test learning curve, and optionally a fitted function. """
-
+                  predictor=None, ylim=(-0.05,1.05), figsize=(12,6), title=None, saturation=None, max_scaling=2, close=False, **kwargs):
+        """ Plot any training and test learning curves, with optionally fitted functions and saturation.
+        
+            Args:
+                train_sizes (list): Training sizes (x values).
+                train_scores_std (list): Train score standard deviations.
+                test_scores_mean (list): Test score means(y values).
+                test_scores_std (list): Train score means.
+                predictor (str, list(str), Predictor, list(Predictor)): The predictor(s) to use for plotting the fitted curve. Can be "all" and "best".
+                ylim (2uple): Limits of the y axis of the plot that will be considered if the autoscaling sets limits beyond ylim.
+                figsize (2uple): Size of the figure
+                title (str): Title of the figure
+                saturation (str, list(str), Predictor, list(Predictor)): Predictor(s) to consider for displaying the saturation on the plot. Can be "all" and "best".
+                max_scaling (float): Order of magnitude added to the order of magnitude of the maximum train set size. Generally, a value of 1-2 is enough. 
+                close (bool): If True, close the figure before returning it. This is usefull if a lot of plots are being created because Matplotlib won't close them, potentially leading to warnings.
+                    If False, the plot will not be closed. This can be desired when working on Jupyter notebooks, so that the plot will be rendered in the output of the cell.
+                kwargs (dict): Parameters that will be forwarded to internal functions.
+        """
         fig, ax = plt.subplots(1, 1, figsize=figsize)
         if 'title' is not None: ax.set_title(title)
         ax.set_xlabel("Training examples")
@@ -285,7 +365,7 @@ class LearningCurve():
 
         # Plot saturation
         if isinstance(saturation, Predictor):
-            ax, optx = self.plot_saturation(ax, saturation, max_abs, **kwargs)
+            ax = self.plot_saturation(ax, saturation, max_abs, **kwargs)
 
         for P in [P for P in predictors if P.score is not None]:
             if P is not None: 
@@ -299,13 +379,24 @@ class LearningCurve():
             if ymax > ylim[1]: ax.set_ylim(top=ylim[1])
 
         ax.legend(loc="best")
-        plt.close(fig)
+        if close: plt.close(fig)
         return fig
 
 
     def plot_fitted_curve(self, ax, P, x, scores=True, sat=False, sat_ls='-.', **kwargs):
-        """ Add to figure ax a fitted curve. if {sat} is True, use zorder higher to make the curve more visible. """
-
+        """ Add to figure ax a fitted curve. 
+            
+            Args:
+                ax (Matplotlib.axes): Figure used to print the curve.
+                P (Predictor): Predictor to use for the computing of the curve.
+                x (array): 1D array (list) representing the training sizes.
+                scores (bool): Print the score of each curve fit in the legend if True.
+                sat (bool): use a higher zorder to make the curve more visible if True.
+                sat_ls (Matplotlib line-style): line-style of the curve whose Predictor is used for computing saturation accuracy.
+                kwargs (dict): Parameters that will be forwarded to internal functions.
+            Returns:
+                Matplotlib axes: The updated figure.
+        """
         trialX = np.linspace(x[0], x[-1], 500)
         score = round(P.score,4) if P.score is not None else ""
         label = P.name
@@ -317,8 +408,22 @@ class LearningCurve():
 
 
     def plot_saturation(self, ax, P, max_abs, alpha=1, lw=1.3, **kwargs):
-        """ Add saturation line to a plot. """
+        """ Add saturation line to a plot. 
 
+            The saturation line is a red horizontal line that shows the maximum accuracy achievable. This saturation might be unreachable in the case of a converging Predictor
+            (a infinite number of samples would be required). If the Predictor is diverging, the saturation value will be 1 (because the Predictor function can be higher than this value).
+            A threshold must be specified to calculate the optimal training set size.
+        
+            Args:
+                ax (Matplotlib.axes): Figure used to print the curve.
+                P (Predictor): Predictor to use for the computing of the curve.
+                max_abs (float): The maximum training set size value to display in the plot.
+                alpha (float): In [0.0, 1.0]. Controls the opacity of the saturation line.
+                lw (float): line-width of the of the threshold lines.
+                kwargs (dict): Parameters that will be forwarded to internal functions.
+            Returns:
+                Matplotlib axes: The updated figure.
+        """
         optx, opty, sat, thresh = self.threshold(P, **kwargs)
         if not P.diverging and np.isfinite(sat): 
             ax.axhline(y=sat, c='r', alpha=alpha, lw=lw)
@@ -327,5 +432,5 @@ class LearningCurve():
         if np.isfinite(optx) and optx < max_abs: ax.axvline(x=optx, ls='-', alpha=alpha, lw=lw)
         if np.isfinite(opty): ax.axhline(y=opty, ls='-', alpha=alpha, lw=lw)
         if np.isfinite(thresh): ax.text(1.02, opty, "{:.2e}".format(optx), va='center', ha="left", bbox=dict(facecolor="w",alpha=0.5), transform=ax.get_yaxis_transform())
-        return ax, optx
+        return ax
         

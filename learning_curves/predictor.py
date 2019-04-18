@@ -3,17 +3,18 @@ import numpy as np
 
 
 class Predictor():
-    """ Object representing a function to fit a learning curve (LearningCurve object). """
+    """ Object representing a function to fit a learning curve (See :class:`learning_curves.LearningCurve`). """
 
     def __init__(self, name, func, guess, inv=None, diverging = False):
         """ Create a Predictor.
-            Parameters:
-                - name: name of the function
-                - func: lambda expression, function to fit
-                - guess: tuple of initial parameters 
-                - inf: lambda expression corresponding to the inverse function of {func}.
-                - diverging: Bool, False if the function converge. In this case the first parameter must be the convergence parameter (enforced to be < 1)."""
 
+            Args:
+                name (str): name of the function
+                func (Callable): lambda expression, function to fit
+                guess (Tuple): Initial parameters 
+                inv (Callable): lambda expression corresponding to the inverse function.
+                diverging (bool): False if the function converge. In this case the first parameter must be the convergence parameter (enforced to be in [0,1]).
+        """
         self.name = name
         self.func = func
         self.guess = guess
@@ -38,9 +39,18 @@ class Predictor():
         return f"({self.name} [params:{self.params}][score:{self.score}])"
 
 
-    def get_saturation(self, max_scale=9):
-        """ Retrieve the saturation accuracy of the Predictor. Returns 1 if the Predictor is diverging without inverse function."""
-    
+    def get_saturation(self):
+        """ Retrieve the saturation accuracy of the Predictor. 
+
+            The saturation accuracy is the best accuracy you will get from the model without changing any other parameter than the training set size.
+            If the Predictor is diverging, this value should be disregarded, being meaningless.
+        
+            Returns:
+                float: saturation accuracy of the Predictor. 
+                    This value is 1 if the Predictor is diverging without inverse function.
+                    This valus is the first parameter of the Predictor if it is converging.
+                    This value is calculated if the Predictor is diverging with inverse function.
+        """
         if not self.diverging: return self.params[0]
 
         if callable(self.inv):

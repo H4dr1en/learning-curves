@@ -1,0 +1,375 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Welcome to learning-curves’s documentation! &mdash; learning-curves 0.2.3 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Documentation" href="learning_curves.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> learning-curves
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.3
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Welcome to learning-curves’s documentation!</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#getting-started">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#custom-predictors">Custom Predictors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#find-the-best-predictor">Find the best Predictor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#plot-the-predictors">Plot the Predictors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#save-and-load-learningcurve-instances">Save and load LearningCurve instances</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#find-the-best-training-set-size">Find the best training set size</a></li>
+<li class="toctree-l1"><a class="reference internal" href="learning_curves.html">Documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">learning-curves</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Welcome to learning-curves’s documentation!</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="welcome-to-learning-curves-s-documentation">
+<h1>Welcome to learning-curves’s documentation!<a class="headerlink" href="#welcome-to-learning-curves-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Learning-curves is Python module that extends <a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.learning_curve.html">sklearn’s learning curve
+feature</a>. It will help you visualizing the learning curve of your
+models.</p>
+<p>Learning curves give an opportunity to diagnose bias and variance in
+supervised learning models, but also to visualize how training set size
+influence the performance of the models (more informations <a class="reference external" href="https://www.dataquest.io/blog/learning-curves-machine-learning/">here</a>).</p>
+<p>Such plots help you answer the following questions:</p>
+<ul class="simple">
+<li><p>Do I have enough data?</p></li>
+<li><p>What would be the best accuracy I would have if I had more data?</p></li>
+<li><p>Can I train my model with less data?</p></li>
+<li><p>Is my training set biased?</p></li>
+</ul>
+<p>Learning-curves will also help you fitting the learning curve to
+extrapolate and find the saturation value of the curve.</p>
+</div>
+<div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install git+https://github.com/H4dr1en/learning-curves#egg=learning-curves
+</pre></div>
+</div>
+<p>To create learning curve plots, first import the module with
+<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">learning_curves</span> <span class="pre">as</span> <span class="pre">LC</span></code>.</p>
+</div>
+<div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>To get started, you can start with the following code:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">learning_curves</span> <span class="k">as</span> <span class="nn">LC</span>
+<span class="n">lc</span> <span class="o">=</span> <span class="n">LC</span><span class="o">.</span><span class="n">LearningCurve</span><span class="p">()</span>
+<span class="n">lc</span><span class="o">.</span><span class="n">get_lc</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">estimator</span></code> implements <code class="docutils literal notranslate"><span class="pre">fit(X,Y)</span></code> and <code class="docutils literal notranslate"><span class="pre">predict(X,Y)</span></code>.</p>
+<p>Output:</p>
+<p><img alt="alt text1" src="_images/learning_curve_no_fit.png" /></p>
+<p>On this example the green curve suggests that adding more data to the
+training set is likely to improve a bit the model accuracy. The green
+curve also shows a saturation near 0.96. We can easily fit a function to
+this curve:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">predictor</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<p><img alt="alt text2" src="_images/learning_curve_simple.png" /></p>
+<p>Here we used a predefined function, <code class="docutils literal notranslate"><span class="pre">pow</span></code>, to fit the green curve. The
+R2 score is very close to 1, meaning that the fit is optimal. We can
+therefore use this curve to extrapolate the evolution of the accuracy
+with the training set size.</p>
+<p>This also tells us how many data we should use to train our model to
+maximize performances and accuracy.</p>
+</div>
+<div class="section" id="custom-predictors">
+<h1>Custom Predictors<a class="headerlink" href="#custom-predictors" title="Permalink to this headline">¶</a></h1>
+<p>You can create a <code class="docutils literal notranslate"><span class="pre">Predictor</span></code> like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span> <span class="o">=</span> <span class="n">Predictor</span><span class="p">(</span><span class="s2">&quot;myPredictor&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="p">:</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Here we created a Predictor called “myPredictor” with the function
+<code class="docutils literal notranslate"><span class="pre">y(x)</span> <span class="pre">=</span> <span class="pre">a*x</span> <span class="pre">+</span> <span class="pre">b</span></code>. Because internally SciPy <code class="docutils literal notranslate"><span class="pre">optimize.curve_fit</span></code> is
+called, a first guess of the parameters <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code> are required.
+Here we gave them respective value 1 and 0. You can then add the
+<code class="docutils literal notranslate"><span class="pre">Predictor</span></code> to the <code class="docutils literal notranslate"><span class="pre">LearningCurve</span></code> object in two different ways:</p>
+<ul class="simple">
+<li><p>Pass the <code class="docutils literal notranslate"><span class="pre">Predictor</span></code> to the <code class="docutils literal notranslate"><span class="pre">LearningCurve</span></code> constructor:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span> <span class="o">=</span> <span class="n">LearningCurve</span><span class="p">([</span><span class="n">predictor</span><span class="p">])</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Register the <code class="docutils literal notranslate"><span class="pre">Predictor</span></code> inside the predictors of the
+<code class="docutils literal notranslate"><span class="pre">LearningCurve</span></code> object:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">predictors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">predictor</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, 5 <code class="docutils literal notranslate"><span class="pre">Predictors</span></code> are instantiated:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">predictors</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">Predictor</span><span class="p">(</span><span class="s2">&quot;pow&quot;</span><span class="p">,</span>        <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span>    <span class="p">:</span> <span class="n">a</span> <span class="o">-</span> <span class="p">(</span><span class="n">b</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="n">d</span><span class="p">)</span><span class="o">**</span><span class="n">c</span><span class="p">,</span>                <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">,</span> <span class="o">-.</span><span class="mi">5</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">]),</span>
+    <span class="n">Predictor</span><span class="p">(</span><span class="s2">&quot;pow_log&quot;</span><span class="p">,</span>    <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="p">:</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="o">*</span><span class="n">x</span><span class="o">**</span><span class="n">c</span> <span class="o">+</span> <span class="n">m</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="n">n</span><span class="p">),</span>   <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">,</span> <span class="o">-.</span><span class="mi">5</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">],</span> <span class="n">diverging</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="n">Predictor</span><span class="p">(</span><span class="s2">&quot;pow_log_2&quot;</span><span class="p">,</span>  <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span>       <span class="p">:</span> <span class="n">a</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">b</span><span class="p">))</span><span class="o">**</span><span class="n">c</span><span class="p">),</span>    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.7</span><span class="p">,</span> <span class="o">-.</span><span class="mi">5</span><span class="p">]),</span>
+    <span class="n">Predictor</span><span class="p">(</span><span class="s2">&quot;inv_log&quot;</span><span class="p">,</span>    <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span>          <span class="p">:</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>               <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">]),</span>
+    <span class="n">Predictor</span><span class="p">(</span><span class="s2">&quot;exp&quot;</span><span class="p">,</span>        <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span>       <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">a</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">b</span><span class="o">/</span><span class="n">x</span> <span class="o">+</span><span class="n">c</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)),[</span><span class="o">.</span><span class="mi">9</span><span class="p">,</span> <span class="o">-</span><span class="mf">1e3</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">],</span> <span class="n">diverging</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Some predictors perform better (R2 score is closer to 1) than others,
+depending on the dataset, the model and the value to be preditected.</p>
+</div>
+<div class="section" id="find-the-best-predictor">
+<h1>Find the best Predictor<a class="headerlink" href="#find-the-best-predictor" title="Permalink to this headline">¶</a></h1>
+<p>To find the Predictor that will fit best your learning curve, we can
+call <code class="docutils literal notranslate"><span class="pre">get_predictor</span></code> function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">get_predictor</span><span class="p">(</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nb">pow</span> <span class="p">[</span><span class="n">params</span><span class="p">:[</span>   <span class="mf">0.9588563</span>    <span class="mf">11.74747659</span>   <span class="o">-</span><span class="mf">0.36232639</span> <span class="o">-</span><span class="mf">236.46115903</span><span class="p">]][</span><span class="n">score</span><span class="p">:</span><span class="mf">0.9997458683912492</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="plot-the-predictors">
+<h1>Plot the Predictors<a class="headerlink" href="#plot-the-predictors" title="Permalink to this headline">¶</a></h1>
+<p>You can plot any <code class="docutils literal notranslate"><span class="pre">Predictor</span></code>s fitted function with the <code class="docutils literal notranslate"><span class="pre">plot</span></code>
+function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">predictor</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<p><img alt="alt text3" src="_images/learning_curve_all.png" /></p>
+</div>
+<div class="section" id="save-and-load-learningcurve-instances">
+<h1>Save and load LearningCurve instances<a class="headerlink" href="#save-and-load-learningcurve-instances" title="Permalink to this headline">¶</a></h1>
+<p>Because <code class="docutils literal notranslate"><span class="pre">Predictor</span></code> contains lambda functions, you can not simply save
+a <code class="docutils literal notranslate"><span class="pre">LearningCurve</span></code> instance. One possibility is to only save the data
+points of the curve inside <code class="docutils literal notranslate"><span class="pre">lc.recorder[&quot;data&quot;]</span></code> and retrieve then
+later on. But then the custom predictors are not saved. Therefore it is
+recommended to use the <code class="docutils literal notranslate"><span class="pre">save</span></code> and <code class="docutils literal notranslate"><span class="pre">load</span></code> methods:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;path/to/save.pkl&quot;</span><span class="p">)</span>
+<span class="n">lc</span> <span class="o">=</span> <span class="n">LC</span><span class="o">.</span><span class="n">LearningCurve</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;path/to/save.pkl&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This internally uses the <code class="docutils literal notranslate"><span class="pre">dill</span></code> library to save the <code class="docutils literal notranslate"><span class="pre">LearningCurve</span></code>
+instance with all the <code class="docutils literal notranslate"><span class="pre">Predictor</span></code>s.</p>
+</div>
+<div class="section" id="find-the-best-training-set-size">
+<h1>Find the best training set size<a class="headerlink" href="#find-the-best-training-set-size" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">learning-curves</span></code> will help you finding the best training set size by
+extrapolation of the best fitted curve:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">predictor</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<p><img alt="alt text4" src="_images/learning_curve_fit_sat_all.png" /></p>
+<p>The horizontal red line shows the saturation of the curve. The
+intersection of the two blue lines shows the best accuracy we can get,
+given a certain <code class="docutils literal notranslate"><span class="pre">threshold</span></code> (see below).</p>
+<p>To retrieve the value of the best training set size:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">threshold</span><span class="p">(</span><span class="n">predictor</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mf">0.9589</span><span class="p">,</span> <span class="mi">31668</span><span class="p">,</span> <span class="mf">0.9493</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This tells us that the saturation value (the maximum accuracy we can get
+from this model without changing any other parameter) is <code class="docutils literal notranslate"><span class="pre">0.9589</span></code>.
+This value corresponds to an infinite number of samples in our training
+set! But with a threshold of <code class="docutils literal notranslate"><span class="pre">0.99</span></code> (this parameter can be changed
+with <code class="docutils literal notranslate"><span class="pre">threshold=x</span></code>), we can have an accuracy <code class="docutils literal notranslate"><span class="pre">0.9493</span></code> if our
+training set contains <code class="docutils literal notranslate"><span class="pre">31668</span></code> samples.</p>
+<p>Note: The saturation value is always the <em>second parameter</em> of the
+function. Therefore, if you create your own <code class="docutils literal notranslate"><span class="pre">Predictor</span></code>, place the
+saturation factor in second position (called a in the predefined
+<code class="docutils literal notranslate"><span class="pre">Predictor</span></code>s). If the function of your custom <code class="docutils literal notranslate"><span class="pre">Predictor</span></code> is
+diverging, then no saturation value can be retrieven. In that case, pass
+<code class="docutils literal notranslate"><span class="pre">diverging=True</span></code> to the constructor of the <code class="docutils literal notranslate"><span class="pre">Predictor</span></code>. The
+saturation value will then be calculated considering the <code class="docutils literal notranslate"><span class="pre">max_scaling</span></code>
+parameter of the <code class="docutils literal notranslate"><span class="pre">threshold_cust</span></code> function (see documentation for
+details). You should set this parameter to the maximum number of sample
+you can add to your training set.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="learning_curves.html" class="btn btn-neutral float-right" title="Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, H4drien
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

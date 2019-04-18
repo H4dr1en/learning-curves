@@ -1,0 +1,28 @@
+Documentation
+========================
+
+learning\_curves.learning\_curves module
+----------------------------------------
+
+.. automodule:: learning_curves.learning_curves
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+learning\_curves.predictor module
+---------------------------------
+
+.. automodule:: learning_curves.predictor
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+learning\_curves.tools module
+-----------------------------
+
+.. automodule:: learning_curves.tools
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. _learning_curve: https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.learning_curve.html#sklearn.model_selection.learning_curve
