@@ -5,7 +5,7 @@ import numpy as np
 class Predictor():
     """ Object representing a function to fit a learning curve (See :class:`learning_curves.LearningCurve`). """
 
-    def __init__(self, name, func, guess, inv=None, diverging = False):
+    def __init__(self, name, func, guess, inv=None, diverging=False, bounds=None):
         """ Create a Predictor.
 
             Args:
@@ -13,7 +13,10 @@ class Predictor():
                 func (Callable): lambda expression, function to fit
                 guess (Tuple): Initial parameters 
                 inv (Callable): lambda expression corresponding to the inverse function.
-                diverging (bool): False if the function converge. In this case the first parameter must be the convergence parameter (enforced to be in [0,1]).
+                diverging (bool): False if the function converge. In this case the first parameter must be the convergence parameter (enforced to be in [-inf,1]).
+                bounds (array of tuples): Bounds of the parameters. Default is [-inf, inf] for all parameters, except for the convergence parameter whose bounds are [-inf,1]
+                    if diverging is True.
+
         """
         self.name = name
         self.func = func
@@ -28,6 +31,11 @@ class Predictor():
         else:
             self.inv = None
 
+        if bounds:
+            self.bounds = bounds
+        else:
+            self.bounds = (-np.inf, np.inf) if self.diverging else ([-np.inf] * (len(self.params)), [1]+[np.inf] * (len(self.params) - 1))
+
 
     def __call__(self, x, *args):
         with warnings.catch_warnings():                
@@ -36,7 +44,7 @@ class Predictor():
 
 
     def __repr__(self):
-        return f"({self.name} [params:{self.params}][score:{self.score}])"
+        return f"Predictor {self.name} with params {self.params} and score {self.score}"
 
 
     def get_saturation(self):

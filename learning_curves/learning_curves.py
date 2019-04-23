@@ -167,14 +167,11 @@ class LearningCurve():
         """
         assert isinstance(P, Predictor), "The given Predictor is not a Predictor object."
 
-        # Enforce parameter a to be in [0,1] if Predictor is converging
-        #bounds = (-np.inf, np.inf) if P.diverging else ([0]+[-np.inf] * (len(P.params) - 1), [1]+[np.inf] * (len(P.params) - 1))
-        bounds = (-np.inf, np.inf) if P.diverging else ([-np.inf] * (len(P.params)), [1]+[np.inf] * (len(P.params) - 1))
         try:
             with warnings.catch_warnings():                
                 warnings.simplefilter("ignore", RuntimeWarning)
                 warnings.simplefilter("ignore", OptimizeWarning)      
-                P.params, P.cov = optimize.curve_fit(P, x, y, P.params, bounds=bounds, **kwargs)       
+                P.params, P.cov = optimize.curve_fit(P, x, y, P.params, bounds=P.bounds, **kwargs)       
             y_pred = P(x)
             P.score = self.scoring(y, y_pred) if np.isfinite(y_pred).all() else np.nan
         except ValueError:
@@ -183,7 +180,7 @@ class LearningCurve():
             return P
 
 
-    def threshold(self, threshold=0.99, P="best", **kwargs):
+    def threshold(self, P="best", **kwargs):
         """ See :meth:`threshold_cust` function. This function calls :meth:`threshold_cust` with the recorder data.
 
             Args:
@@ -196,7 +193,7 @@ class LearningCurve():
         """
         if len(self.recorder) == 0: raise RuntimeError("Recorder is empty. You must first compute learning curve data points using the train method.")
         if isinstance(P, str) : P = self.get_predictor(P)
-        return self.threshold_cust(P, self.recorder["train_sizes"], threshold=threshold, **kwargs)
+        return self.threshold_cust(P, self.recorder["train_sizes"], **kwargs)
 
 
     def threshold_cust(self, P, x, threshold=0.99, max_scaling=1, resolution=1e4, strategies=dict(max_scaling=1, threshold=-0.01), **kwargs):
