@@ -202,6 +202,16 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="learning_curves.learning_curves.LearningCurve.eval_train_sizes">
+<code class="descname">eval_train_sizes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.eval_train_sizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.eval_train_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the difference of scale between the first and last gradients of accuracies of the train_sizes.</p>
+<p>If this number is lower than 2, then it indicates that the provided training set sizes don’t cover a wide enough range of the accuracies values
+to fit a curve. In that case, you should look at the generated plot to determine if you need more points close to the minimum or the maximum training set size.</p>
+<p class="rubric">Example</p>
+<p>get_train_sizes_grads([   2,    8,  …, 2599, 2824]) &gt; 2.7156</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.fit">
 <code class="descname">fit</code><span class="sig-paren">(</span><em>P</em>, <em>x</em>, <em>y</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fit a curve with a predictor, compute  and save the score of the fit.</p>
@@ -391,7 +401,7 @@ A threshold must be specified to calculate the optimal training set size.</p>
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.threshold">
-<code class="descname">threshold</code><span class="sig-paren">(</span><em>threshold=0.99</em>, <em>P='best'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.threshold" title="Permalink to this definition">¶</a></dt>
+<code class="descname">threshold</code><span class="sig-paren">(</span><em>P='best'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.threshold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.threshold" title="Permalink to this definition">¶</a></dt>
 <dd><p>See <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.threshold_cust" title="learning_curves.learning_curves.LearningCurve.threshold_cust"><code class="xref py py-meth docutils literal notranslate"><span class="pre">threshold_cust()</span></code></a> function. This function calls <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.threshold_cust" title="learning_curves.learning_curves.LearningCurve.threshold_cust"><code class="xref py py-meth docutils literal notranslate"><span class="pre">threshold_cust()</span></code></a> with the recorder data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -514,9 +524,16 @@ This value is calculated if the Predictor is diverging with inverse function.</p
 <span id="learning-curves-tools-module"></span><h2>learning_curves.tools module<a class="headerlink" href="#module-learning_curves.tools" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="learning_curves.tools.get_scale">
-<code class="descclassname">learning_curves.tools.</code><code class="descname">get_scale</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/tools.html#get_scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.tools.get_scale" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">learning_curves.tools.</code><code class="descname">get_scale</code><span class="sig-paren">(</span><em>val</em>, <em>floor=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/tools.html#get_scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.tools.get_scale" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the scale of a value.</p>
-<p>Eg: get_scale(1e-15) = -15</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>floor</strong> (<em>bool</em>) – if True, apply np.floor to the result</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>get_scale(1.5e-15) &gt; -15
+get_scale(1.5e-15) &gt; -14.823908740944319</p>
 </dd></dl>
 
 <dl class="function">
@@ -529,12 +546,10 @@ This value is calculated if the Predictor is diverging with inverse function.</p
 <dt id="learning_curves.tools.is_strictly_increasing">
 <code class="descclassname">learning_curves.tools.</code><code class="descname">is_strictly_increasing</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/tools.html#is_strictly_increasing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.tools.is_strictly_increasing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns True if the list contains strictly increasing values.</p>
-<dl class="simple">
-<dt>Eg:</dt><dd><p>is_strictly_increasing([0,1,2,3,4,5]) &gt; True
+<p class="rubric">Examples</p>
+<p>is_strictly_increasing([0,1,2,3,4,5]) &gt; True
 is_strictly_increasing([0,1,2,2,4,5]) &gt; False
 is_strictly_increasing([0,1,2,1,4,5]) &gt; False</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="function">
@@ -548,7 +563,7 @@ is_strictly_increasing([0,1,2,1,4,5]) &gt; False</p>
 <code class="descclassname">learning_curves.tools.</code><code class="descname">update_params</code><span class="sig-paren">(</span><em>params</em>, <em>strategies</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/tools.html#update_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.tools.update_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update the values of params based on the values in strategies.</p>
 <dl class="simple">
-<dt>Eg: update_params(params=dict(val1=1, val2=10), strategies=dict(val1=0.1, val2=-1)</dt><dd><p>&gt; {‘val1’: 1.1, ‘val2’: 9}</p>
+<dt>Example: update_params(params=dict(val1=1, val2=10), strategies=dict(val1=0.1, val2=-1)</dt><dd><p>&gt; {‘val1’: 1.1, ‘val2’: 9}</p>
 </dd>
 </dl>
 </dd></dl>

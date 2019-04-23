@@ -169,7 +169,7 @@
 <div class="viewcode-block" id="is_strictly_increasing"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.tools.is_strictly_increasing">[docs]</a><span class="k">def</span> <span class="nf">is_strictly_increasing</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Returns True if the list contains strictly increasing values. </span>
 <span class="sd">    </span>
-<span class="sd">        Eg: </span>
+<span class="sd">        Examples: </span>
 <span class="sd">            is_strictly_increasing([0,1,2,3,4,5]) &gt; True</span>
 <span class="sd">            is_strictly_increasing([0,1,2,2,4,5]) &gt; False</span>
 <span class="sd">            is_strictly_increasing([0,1,2,1,4,5]) &gt; False</span>
@@ -179,12 +179,18 @@
     <span class="k">return</span> <span class="kc">True</span></div>
 
 
-<div class="viewcode-block" id="get_scale"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.tools.get_scale">[docs]</a><span class="k">def</span> <span class="nf">get_scale</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+<div class="viewcode-block" id="get_scale"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.tools.get_scale">[docs]</a><span class="k">def</span> <span class="nf">get_scale</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Returns the scale of a value. </span>
-<span class="sd">    </span>
-<span class="sd">        Eg: get_scale(1e-15) = -15 </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            floor (bool): if True, apply np.floor to the result </span>
+
+<span class="sd">        Examples: </span>
+<span class="sd">            get_scale(1.5e-15) &gt; -15 </span>
+<span class="sd">            get_scale(1.5e-15) &gt; -14.823908740944319</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">val</span><span class="p">)))</span></div>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">if</span> <span class="n">floor</span> <span class="k">else</span> <span class="n">val</span></div>
     
 
 <div class="viewcode-block" id="get_unique_list"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.tools.get_unique_list">[docs]</a><span class="k">def</span> <span class="nf">get_unique_list</span><span class="p">(</span><span class="n">predictors</span><span class="p">):</span>
@@ -199,16 +205,13 @@
 <div class="viewcode-block" id="update_params"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.tools.update_params">[docs]</a><span class="k">def</span> <span class="nf">update_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">strategies</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Update the values of params based on the values in strategies. </span>
 <span class="sd">    </span>
-<span class="sd">        Eg: update_params(params=dict(val1=1, val2=10), strategies=dict(val1=0.1, val2=-1)</span>
+<span class="sd">        Example: update_params(params=dict(val1=1, val2=10), strategies=dict(val1=0.1, val2=-1)</span>
 <span class="sd">            &gt; {&#39;val1&#39;: 1.1, &#39;val2&#39;: 9}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">strategies</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span> 
             <span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="n">value</span>
     <span class="k">return</span> <span class="n">params</span></div>
-
-
-    
 </pre></div>
 
            </div>

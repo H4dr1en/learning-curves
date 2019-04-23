@@ -180,6 +180,31 @@ class LearningCurve():
             return P
 
 
+    def eval_train_sizes(self):
+        """ Get the difference of scale between the first and last gradients of accuracies of the train_sizes.
+
+            If this number is lower than 2, then it indicates that the provided training set sizes don't cover a wide enough range of the accuracies values
+            to fit a curve. In that case, you should look at the generated plot to determine if you need more points close to the minimum or the maximum training set size.
+
+            Example:
+                get_train_sizes_grads([   2,    8,  ..., 2599, 2824]) > 2.7156
+        """
+        if len(self.recorder) == 0: raise RuntimeError("Recorder is empty. You must first compute learning curve data points using the train method.")
+        
+        X = self.recorder["train_sizes"]
+        assert len(X) > 4, "train_sizes must have at least 4 values"
+
+        Y = self.best_predictor()(X)
+        grad_low  = (Y[1] -Y[0])    / (X[1] -X[0])
+        grad_high = (Y[-1]-Y[-2])   / (X[-1]-X[-2])
+
+        return get_scale(grad_low, False) - get_scale(grad_high, False)
+
+       # if get_scale(grad_high) - get_scale(grad_low) < 2:
+         #   raise ValueError("training sizes don't provide a range of accuracies big enough. The fitted curve may be incorrect")
+
+
+
     def threshold(self, P="best", **kwargs):
         """ See :meth:`threshold_cust` function. This function calls :meth:`threshold_cust` with the recorder data.
 
@@ -346,7 +371,7 @@ class LearningCurve():
         ax.fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.15, color="g")
         ax.plot(train_sizes, train_scores_mean, 'o-', color='#1f77b4', label="Training score")
         #ax.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
-        ax.errorbar(train_sizes, test_scores_mean, test_scores_std, fmt='o-', color="g", label="Cross-validation score")
+        ax.errorbar(train_sizes, test_scores_mean, test_scores_std, fmt='o-', color="g", label="Cross-validation score", elinewidth=1)
 
         predictors = []
         if predictor is not None: 

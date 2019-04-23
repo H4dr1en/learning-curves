@@ -40,6 +40,7 @@ class Predictor():
     def __call__(self, x, *args):
         with warnings.catch_warnings():                
             warnings.simplefilter("ignore", RuntimeWarning) 
+            x = np.array(x) # Enforce x to be a np array because a list of floats would throw a TypeError
             return self.func(x, *args) if len(args) > 1 else self.func(x, *self.params)
 
 
