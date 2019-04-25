@@ -344,7 +344,8 @@ class LearningCurve():
         return self.plot_cust(predictor=predictor, **self.recorder, **kwargs)
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
-                  predictor=None, ylim=(-0.05,1.05), figsize=(12,6), title=None, saturation=None, max_scaling=1, close=False, **kwargs):
+                  predictor=None, ylim=(-0.05,1.05), figsize=(12,6), title=None, saturation=None, max_scaling=1, 
+                  validation=0, close=False, **kwargs):
         """ Plot any training and test learning curves, with optionally fitted functions and saturation.
         
             Args:
@@ -358,6 +359,7 @@ class LearningCurve():
                 title (str): Title of the figure
                 saturation (str, list(str), Predictor, list(Predictor)): Predictor(s) to consider for displaying the saturation on the plot. Can be "all" and "best".
                 max_scaling (float): Order of magnitude added to the order of magnitude of the maximum train set size. Generally, a value of 1-2 is enough. 
+                validation (int): Number of data points to keep for validation of the curve fitting (they will not be used during the fitting but displayed afterwards)
                 close (bool): If True, close the figure before returning it. This is usefull if a lot of plots are being created because Matplotlib won't close them, potentially leading to warnings.
                     If False, the plot will not be closed. This can be desired when working on Jupyter notebooks, so that the plot will be rendered in the output of the cell.
                 kwargs (dict): Parameters that will be forwarded to internal functions.
@@ -367,6 +369,19 @@ class LearningCurve():
         ax.set_xlabel("Training examples")
         ax.set_ylabel("Score")
         ax.grid()
+
+        max_train_size = train_sizes[-1]
+
+        if validation > 0:
+            train_sizes_val, test_scores_mean_val, test_scores_std_val = \
+                train_sizes[-validation:], test_scores_mean[-validation:], test_scores_std[-validation:]
+
+            train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std = \
+                train_sizes[0:-validation], train_scores_mean[0:-validation], train_scores_std[0:-validation], test_scores_mean[0:-validation], test_scores_std[0:-validation]
+
+            #ax.fill_between(train_sizes_val, test_scores_mean_val - test_scores_std_val, test_scores_mean_val + test_scores_std_val, alpha=0.1, color='#f39c12')
+            ax.errorbar(train_sizes_val, test_scores_mean_val, test_scores_std_val, fmt='+', color="r", label="Fit CV score", elinewidth=1, mew=5, ms=5)
+
         ax.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha=0.1, color='#1f77b4')
         ax.fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.15, color="g")
         ax.plot(train_sizes, train_scores_mean, 'o-', color='#1f77b4', label="Training score")
@@ -385,9 +400,9 @@ class LearningCurve():
         predictors = get_unique_list(predictors) # Remove duplicates
         self.fit_all_cust(train_sizes, test_scores_mean, predictors, sigma=test_scores_std)
 
-        x_scale = get_scale(train_sizes[-1])
+        x_scale = get_scale(max_train_size)
         val = 10**(x_scale + max_scaling)
-        max_abs = val if val > train_sizes[-1] else train_sizes[-1]
+        max_abs = val if val > max_train_size else max_train_size
         x_values = np.linspace(train_sizes[0], max_abs, 50)
 
         # Plot saturation
