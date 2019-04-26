@@ -3,9 +3,10 @@ import warnings
 import gc
 import time
 import dill
+import copy
 from pathlib import Path
 
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split, ShuffleSplit, learning_curve
 import scipy.optimize as optimize
 from scipy.optimize import OptimizeWarning
@@ -27,8 +28,14 @@ class LearningCurve():
             scoring (Callable): Function used to calculate scores of the model. (Default is sklearn r2_score)."""
 
         defaults_predictors = [
-            Predictor("pow",        lambda x, a, b, c, d    : a - (b*x+d)**c,                  [.9, 1.7, -.5, 1e-3], 
-                                    lambda x, a, b, c, d    : (-d + (-x + a)**(1/c))/b),
+            Predictor(  
+                        "pow",        
+                        lambda x, a, b, c, d    : a - (b*x+d)**c,                  
+                        [.9, 1.7, -.5, 0], 
+                        lambda x, a, b, c, d    : (-d + (-x + a)**(1/c))/b, 
+                        bounds=([-np.inf, 0, -np.inf, -np.inf], [1, np.inf, 0, 1])
+                    ),
+                   # 1.        0.001016 -0.115942  0.641653]
 
             Predictor("pow_log",    lambda x, a, b, c, d, m, n : a - (b*x+d)**c + m*np.log(x**n), [.9, 1.7, -.5, 1e-3, 1e-3, 1e-3], diverging=True),
 
@@ -102,7 +109,7 @@ class LearningCurve():
         """ Get a :class:`learning_curves.predictor` from the list of the Predictors.
             
             Args:
-                pred (Predictor, str, list): Predictor name, "best" or "all", a Predictor, a list of string (Predictor names), a list of Predictors
+                pred (Predictor, str, list): Predictor name, "best" or "all", a Predictor, a list of string (Predictor names), a list of Predictors`
             Returns:
                 Predictor: The matching Predictor
             Raises:
@@ -181,11 +188,13 @@ class LearningCurve():
 
 
     def eval_train_sizes(self):
-        """ Get the difference of scale between the first and last gradients of accuracies of the train_sizes.
+        """ Compute the difference of scale between the first and last gradients of accuracies of the train_sizes.
 
             If this number is lower than 2, then it indicates that the provided training set sizes don't cover a wide enough range of the accuracies values
             to fit a curve. In that case, you should look at the generated plot to determine if you need more points close to the minimum or the maximum training set size.
 
+            Returns:
+                tain_size_score (float): The difference of scale between the first and last gradients of accuracies of the train_sizes
             Example:
                 get_train_sizes_grads([   2,    8,  ..., 2599, 2824]) > 2.7156
         """
@@ -200,9 +209,38 @@ class LearningCurve():
 
         return get_scale(grad_low, False) - get_scale(grad_high, False)
 
-       # if get_scale(grad_high) - get_scale(grad_low) < 2:
-         #   raise ValueError("training sizes don't provide a range of accuracies big enough. The fitted curve may be incorrect")
 
+    def eval_fitted_curve(self, validation=0.45, **kwargs):
+        """ Split the data points in two sets then fit predictors in the first set and evaluate them using RMSE on the second set. See :meth:`eval_fitted_curve_cust` """
+        if len(self.recorder) == 0: raise RuntimeError("Recorder is empty. You must first compute learning curve data points using the train method.")
+        return self.eval_fitted_curve_cust(self.recorder["train_sizes"], self.recorder["test_scores_mean"], self.recorder["test_scores_std"], validation=validation, **kwargs)
+
+
+    def eval_fitted_curve_cust(self, train_sizes, test_scores_mean, test_scores_std, validation=0.45, P="best", fit=True):
+        """ Split the data points in two sets then fit predictors in the first set and evaluate them using RMSE on the second set.
+
+            Args:
+                validation (float): Percentage of samples of the validation set (the highest training sizes will be used).
+                P (Predictor, "best"): Predictor to consider
+                fit (bool): If True, fit the curve of the Predictors.
+            Returns:
+                fit_score (float): The Root Mean Squared Error of the validation set against the fitted curve of the Predictor
+        """
+        assert validation < 1 and validation > 0, "validation parameter must be between 0 and 1."
+
+        valid_abs = int(validation * len(train_sizes))
+        train_sizes_val, test_scores_mean_val = train_sizes[-valid_abs:], test_scores_mean[-valid_abs:]
+        train_sizes_fit, test_scores_mean_fit, test_scores_std_fit = train_sizes[0:-valid_abs], test_scores_mean[0:-valid_abs], test_scores_std[0:-valid_abs]
+
+        predictors = self.predictors if P == "best" else P
+
+        if not isinstance(predictors, list):
+             raise ValueError("P must be a list of Predictors or 'best'.")
+
+        if fit: self.fit_all_cust(train_sizes_fit, test_scores_mean_fit, predictors, sigma=test_scores_std_fit)
+        P = self.best_predictor(predictors)
+
+        return mean_squared_error(test_scores_mean_val, P(train_sizes_val))**0.5
 
 
     def threshold(self, P="best", **kwargs):
@@ -293,27 +331,19 @@ class LearningCurve():
             return round(opt_trn_size,0), round(opt_acc,4), round(sat_acc,4), threshold
 
 
-    def best_predictor(self, **kwargs):
-        """ Find the Predictor having the best fit of the learning curve of the recorder data. See :meth:`best_predictor_cust` for parameters. """
-        if len(self.recorder) == 0: raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
-        return self.best_predictor_cust(self.predictors, self.recorder["train_sizes"], self.recorder["test_scores_mean"], **kwargs)
-
-
-    def best_predictor_cust(self, predictors, x, y, fit=True, prefer_conv_delta=2e-3, **kwargs):
+    def best_predictor(self, predictors="all", prefer_conv_delta=2e-3, **kwargs):
         """ Find the Predictor having the best fit of a learning curve. 
         
             Args:
-                predictors (list(Predictor)): A list of Predictors to consider.
-                x (array): 1D array (list) representing the training sizes
-                y (array): 1D array (list) representing the test scores
-                fit (bool): Fit all the Predictor before evaluating their parameters if True.
+                predictors (list(Predictor), "all"): A list of Predictors to consider.
                 prefer_conv_delta (float): If the difference of the two best Predictor fit scores is lower than prefer_conv_delta, then if the converging Predict will be prefered (if any).
                 kwargs (dict): Parameters that will be forwarded to internal functions.
             Returns:
                 Predictor: The Predicto having the best fit of the learning curve.
         """
+        if predictors == "all": predictors = self.predictors
+
         best_p = None
-        if fit is True : predictors = self.fit_all_cust(x, y, predictors)
         for P in predictors:
             if P.score is None: continue
             if best_p is None: best_p = P 
@@ -343,9 +373,10 @@ class LearningCurve():
         if len(self.recorder) == 0: raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
         return self.plot_cust(predictor=predictor, **self.recorder, **kwargs)
 
+
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
-                  predictor=None, ylim=(-0.05,1.05), figsize=(12,6), title=None, saturation=None, max_scaling=1, 
-                  validation=0, close=False, **kwargs):
+                  predictor=None, xlim=None, ylim=(-0.05,1.05), figsize=(12,6), title=None, saturation=None, 
+                  max_scaling=1, validation=0, close=False, uncertainty=False, **kwargs):
         """ Plot any training and test learning curves, with optionally fitted functions and saturation.
         
             Args:
@@ -354,14 +385,16 @@ class LearningCurve():
                 test_scores_mean (list): Test score means(y values).
                 test_scores_std (list): Train score means.
                 predictor (str, list(str), Predictor, list(Predictor)): The predictor(s) to use for plotting the fitted curve. Can be "all" and "best".
+                xlim (2uple): Limits of the x axis of the plot.
                 ylim (2uple): Limits of the y axis of the plot that will be considered if the autoscaling sets limits beyond ylim.
                 figsize (2uple): Size of the figure
                 title (str): Title of the figure
                 saturation (str, list(str), Predictor, list(Predictor)): Predictor(s) to consider for displaying the saturation on the plot. Can be "all" and "best".
                 max_scaling (float): Order of magnitude added to the order of magnitude of the maximum train set size. Generally, a value of 1-2 is enough. 
-                validation (int): Number of data points to keep for validation of the curve fitting (they will not be used during the fitting but displayed afterwards)
+                validation (float): Percentage of data points to keep for validation of the curve fitting (they will not be used during the fitting but displayed afterwards)
                 close (bool): If True, close the figure before returning it. This is usefull if a lot of plots are being created because Matplotlib won't close them, potentially leading to warnings.
                     If False, the plot will not be closed. This can be desired when working on Jupyter notebooks, so that the plot will be rendered in the output of the cell.
+                uncertainty (bool): If True, plot the uncertainty of the best fitted curve.
                 kwargs (dict): Parameters that will be forwarded to internal functions.
         """
         fig, ax = plt.subplots(1, 1, figsize=figsize)
@@ -370,62 +403,83 @@ class LearningCurve():
         ax.set_ylabel("Score")
         ax.grid()
 
-        max_train_size = train_sizes[-1]
+        max_train_size = train_sizes[-1] * 1.05 # Extend a bit so that the curves don't stop before the last points.
 
         if validation > 0:
+            assert validation < 1, "validation parameter must be between 0 and 1."
+            valid_abs = int(validation * len(train_sizes))
             train_sizes_val, test_scores_mean_val, test_scores_std_val = \
-                train_sizes[-validation:], test_scores_mean[-validation:], test_scores_std[-validation:]
+                train_sizes[-valid_abs:], test_scores_mean[-valid_abs:], test_scores_std[-valid_abs:]
 
-            train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std = \
-                train_sizes[0:-validation], train_scores_mean[0:-validation], train_scores_std[0:-validation], test_scores_mean[0:-validation], test_scores_std[0:-validation]
-
-            #ax.fill_between(train_sizes_val, test_scores_mean_val - test_scores_std_val, test_scores_mean_val + test_scores_std_val, alpha=0.1, color='#f39c12')
-            ax.errorbar(train_sizes_val, test_scores_mean_val, test_scores_std_val, fmt='+', color="r", label="Fit CV score", elinewidth=1, mew=5, ms=5)
+            train_sizes_fit, test_scores_mean_fit, test_scores_std_fit = \
+                train_sizes[0:-valid_abs], test_scores_mean[0:-valid_abs], test_scores_std[0:-valid_abs]
+        else:
+            train_sizes_fit, test_scores_mean_fit, test_scores_std_fit = train_sizes, test_scores_mean, test_scores_std
 
         ax.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha=0.1, color='#1f77b4')
-        ax.fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.15, color="g")
+        ax.fill_between(train_sizes_fit, test_scores_mean_fit - test_scores_std_fit, test_scores_mean_fit + test_scores_std_fit, alpha=0.15, color="g")
         ax.plot(train_sizes, train_scores_mean, 'o-', color='#1f77b4', label="Training score")
         #ax.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
-        ax.errorbar(train_sizes, test_scores_mean, test_scores_std, fmt='o-', color="g", label="Cross-validation score", elinewidth=1)
+        ax.errorbar(train_sizes_fit, test_scores_mean_fit, test_scores_std_fit, fmt='o-', color="g", label="Cross-validation score", elinewidth=1)
 
+        # Get the list of Predictors to consider
         predictors = []
-        if predictor is not None: 
+
+        if predictor == "best": predictors = self.predictors # If "best", wait for fit_all before retrieving the best Predictor
+
+        elif predictor is not None: 
             to_add = self.get_predictor(predictor)
             predictors += to_add if isinstance(to_add, list) else [to_add]
 
-        if saturation is not None:
+        if saturation is not None and saturation != "best": # If "best", wait for fit_all before retrieving the best Predictor
             saturation = self.get_predictor(saturation)
             predictors += saturation if isinstance(saturation, list) else [saturation]
 
         predictors = get_unique_list(predictors) # Remove duplicates
-        self.fit_all_cust(train_sizes, test_scores_mean, predictors, sigma=test_scores_std)
+        self.fit_all_cust(train_sizes_fit, test_scores_mean_fit, predictors, sigma=test_scores_std_fit)
+        best_p = self.best_predictor()
 
         x_scale = get_scale(max_train_size)
         val = 10**(x_scale + max_scaling)
         max_abs = val if val > max_train_size else max_train_size
         x_values = np.linspace(train_sizes[0], max_abs, 50)
 
+        # Plot fitted curves
+        if predictor == "best": predictors = [best_p]
+
+        for P in [P for P in predictors if P is not None and P.score is not None]:
+            best_lbl = best_p == P if isinstance(best_p, Predictor) else False 
+            ax = self.plot_fitted_curve(ax, P, x_values, best=best_lbl, **kwargs)
+
         # Plot saturation
-        if isinstance(saturation, Predictor):
-            ax = self.plot_saturation(ax, saturation, max_abs, **kwargs)
+        if saturation == "best": saturation = best_p
+        if isinstance(saturation, Predictor): ax = self.plot_saturation(ax, saturation, max_abs, **kwargs)
 
-        for P in [P for P in predictors if P.score is not None]:
-            if P is not None: 
-                sat_lbl = saturation.name == P.name if isinstance(saturation, Predictor) else False 
-                ax = self.plot_fitted_curve(ax, P, x_values, sat=sat_lbl, **kwargs)
+        # Plot validation of best estimator
+        if validation > 0:
+            #RMSE = mean_squared_error(test_scores_mean_val, best_p(train_sizes_val))**0.5 # Don't call eval_fitted_curve to prevent refit
+            RMSE = self.eval_fitted_curve_cust(train_sizes, test_scores_mean, test_scores_std, validation, best_p, False)
+            label = f"Fit CV RMSE ({RMSE:.2e})"
+            ax.errorbar(train_sizes_val, test_scores_mean_val, test_scores_std_val, fmt='x', color="r", label=label, elinewidth=1)
 
-        # Set y limits
+        # Plot uncertainty of best estimator
+        if uncertainty: ax = self.plot_uncertainty(best_p, ax, max_train_size)
+
+        # Set limits
         if ylim is not None:
             ymin, ymax = ax.get_ylim()
             if ymin < ylim[0]: ax.set_ylim(bottom=ylim[0])
             if ymax > ylim[1]: ax.set_ylim(top=ylim[1])
 
+        if xlim is not None: ax.set_xlim(xlim)
+
         ax.legend(loc="best")
         if close: plt.close(fig)
+
         return fig
 
 
-    def plot_fitted_curve(self, ax, P, x, scores=True, sat=False, sat_ls='-.', **kwargs):
+    def plot_fitted_curve(self, ax, P, x, scores=True, best=False, best_ls='-.', **kwargs):
         """ Add to figure ax a fitted curve. 
             
             Args:
@@ -433,8 +487,8 @@ class LearningCurve():
                 P (Predictor): Predictor to use for the computing of the curve.
                 x (array): 1D array (list) representing the training sizes.
                 scores (bool): Print the score of each curve fit in the legend if True.
-                sat (bool): use a higher zorder to make the curve more visible if True.
-                sat_ls (Matplotlib line-style): line-style of the curve whose Predictor is used for computing saturation accuracy.
+                best (bool): use a higher zorder to make the curve more visible if True.
+                best_ls (Matplotlib line-style): line-style of the curve whose Predictor is used for computing saturation accuracy.
                 kwargs (dict): Parameters that will be forwarded to internal functions.
             Returns:
                 Matplotlib axes: The updated figure.
@@ -443,8 +497,8 @@ class LearningCurve():
         score = round(P.score,4) if P.score is not None else ""
         label = P.name
         if scores : label += f" ({score})"
-        z = 3 if sat else 2
-        ls =  sat_ls if sat else '--'
+        z = 3 if best else 2
+        ls =  best_ls if best else '--'
         ax.plot(trialX, P(trialX), ls=ls, label=label, zorder=z)
         return ax
 
@@ -477,4 +531,29 @@ class LearningCurve():
             ax.text(1.02, opty, "{:.2e}".format(optx), va='center', ha="left", bbox=dict(facecolor="w",alpha=0.5), transform=ax.get_yaxis_transform())
             ax.text(0.95, opty, f"{round(thresh*100,2)}%", color="#1f77b4", bbox=dict(color="w",alpha=0.8), va='center', ha="center", transform=ax.get_yaxis_transform())
         return ax
-        
+
+
+    def plot_uncertainty(self, P, ax, max_val):
+        """ Add uncertainty of Predictor curve to a plot.
+
+            Args:
+                P (Predictor, str): The predictor to use. Uncertainty is based on standard deviation errors on parameters of the Predictor.
+                ax (Matplotlib.axes): Figure used to print the uncertainty.
+            Returns:
+                Matplotlib axes: The updated figure.
+        """
+        if isinstance(P, str): P = self.get_predictor(P)
+        perr = P.get_error_std()
+
+        # Determine upper and lower boundaries based on perr
+        p_upper, p_lower = [], []
+        for i in range(len(P.params)):
+            params = P.params.copy()
+            params[i] += perr[i]
+            factor = 1 if P(max_val) < P(max_val, *params) else -1
+            p_upper.append(P.params[i] + perr[i] * factor)
+            p_lower.append(P.params[i] - perr[i] * factor)
+
+        X = np.linspace(1, max_val, 100)
+        ax.fill_between(X, P(X, *p_lower), P(X, *p_upper), alpha=0.05, color='r')
+        return ax

@@ -49,7 +49,7 @@ class Predictor():
 
 
     def get_saturation(self):
-        """ Retrieve the saturation accuracy of the Predictor. 
+        """ Compute the saturation accuracy of the Predictor. 
 
             The saturation accuracy is the best accuracy you will get from the model without changing any other parameter than the training set size.
             If the Predictor is diverging, this value should be disregarded, being meaningless.
@@ -77,3 +77,8 @@ class Predictor():
     def __eq__(self, other): 
         if not isinstance(other, Predictor): return RuntimeError("Trying to compare Predictor with not Predictor object.")
         return self.name == other.name
+
+    
+    def get_error_std(self):
+        """ Compute the standard deviation errors on the parameters. """
+        return np.sqrt(np.diag(self.cov))
