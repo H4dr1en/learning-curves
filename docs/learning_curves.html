@@ -194,18 +194,18 @@
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.eval_fitted_curve">
-<code class="descname">eval_fitted_curve</code><span class="sig-paren">(</span><em>validation=0.45</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.eval_fitted_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.eval_fitted_curve" title="Permalink to this definition">¶</a></dt>
+<code class="descname">eval_fitted_curve</code><span class="sig-paren">(</span><em>validation</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.eval_fitted_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.eval_fitted_curve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the data points in two sets then fit predictors in the first set and evaluate them using RMSE on the second set. See <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.eval_fitted_curve_cust" title="learning_curves.learning_curves.LearningCurve.eval_fitted_curve_cust"><code class="xref py py-meth docutils literal notranslate"><span class="pre">eval_fitted_curve_cust()</span></code></a></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.eval_fitted_curve_cust">
-<code class="descname">eval_fitted_curve_cust</code><span class="sig-paren">(</span><em>train_sizes</em>, <em>test_scores_mean</em>, <em>test_scores_std</em>, <em>validation=0.45</em>, <em>P='best'</em>, <em>fit=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.eval_fitted_curve_cust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.eval_fitted_curve_cust" title="Permalink to this definition">¶</a></dt>
+<code class="descname">eval_fitted_curve_cust</code><span class="sig-paren">(</span><em>train_sizes</em>, <em>test_scores_mean</em>, <em>test_scores_std</em>, <em>validation</em>, <em>P='best'</em>, <em>fit=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.eval_fitted_curve_cust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.eval_fitted_curve_cust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split the data points in two sets then fit predictors in the first set and evaluate them using RMSE on the second set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>validation</strong> (<em>float</em>) – Percentage of samples of the validation set (the highest training sizes will be used).</p></li>
+<li><p><strong>validation</strong> (<em>float</em><em>, </em><em>int</em>) – Percentage or number of samples of the validation set (the highest training sizes will be used).</p></li>
 <li><p><strong>P</strong> (<a class="reference internal" href="#learning_curves.predictor.Predictor" title="learning_curves.predictor.Predictor"><em>Predictor</em></a><em>, </em><em>&quot;best&quot;</em>) – Predictor to consider</p></li>
 <li><p><strong>fit</strong> (<em>bool</em>) – If True, fit the curve of the Predictors.</p></li>
 </ul>
@@ -343,7 +343,7 @@ to fit a curve. In that case, you should look at the generated plot to determine
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.plot_cust">
-<code class="descname">plot_cust</code><span class="sig-paren">(</span><em>train_sizes</em>, <em>train_scores_mean</em>, <em>train_scores_std</em>, <em>test_scores_mean</em>, <em>test_scores_std</em>, <em>predictor=None</em>, <em>xlim=None</em>, <em>ylim=(-0.05</em>, <em>1.05)</em>, <em>figsize=(12</em>, <em>6)</em>, <em>title=None</em>, <em>saturation=None</em>, <em>max_scaling=1</em>, <em>validation=0</em>, <em>close=False</em>, <em>uncertainty=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.plot_cust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.plot_cust" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_cust</code><span class="sig-paren">(</span><em>train_sizes</em>, <em>train_scores_mean</em>, <em>train_scores_std</em>, <em>test_scores_mean</em>, <em>test_scores_std</em>, <em>predictor=None</em>, <em>xlim=None</em>, <em>ylim=None</em>, <em>figsize=(12</em>, <em>6)</em>, <em>title=None</em>, <em>saturation=None</em>, <em>max_scaling=1</em>, <em>validation=0</em>, <em>close=False</em>, <em>uncertainty=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.plot_cust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.plot_cust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot any training and test learning curves, with optionally fitted functions and saturation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -354,12 +354,12 @@ to fit a curve. In that case, you should look at the generated plot to determine
 <li><p><strong>test_scores_std</strong> (<em>list</em>) – Train score means.</p></li>
 <li><p><strong>predictor</strong> (<em>str</em><em>, </em><em>list</em><em>(</em><em>str</em><em>)</em><em>, </em><a class="reference internal" href="#learning_curves.predictor.Predictor" title="learning_curves.predictor.Predictor"><em>Predictor</em></a><em>, </em><em>list</em><em>(</em><a class="reference internal" href="#learning_curves.predictor.Predictor" title="learning_curves.predictor.Predictor"><em>Predictor</em></a><em>)</em>) – The predictor(s) to use for plotting the fitted curve. Can be “all” and “best”.</p></li>
 <li><p><strong>xlim</strong> (<em>2uple</em>) – Limits of the x axis of the plot.</p></li>
-<li><p><strong>ylim</strong> (<em>2uple</em>) – Limits of the y axis of the plot that will be considered if the autoscaling sets limits beyond ylim.</p></li>
+<li><p><strong>ylim</strong> (<em>2uple</em>) – Limits of the y axis of the plot.</p></li>
 <li><p><strong>figsize</strong> (<em>2uple</em>) – Size of the figure</p></li>
 <li><p><strong>title</strong> (<em>str</em>) – Title of the figure</p></li>
 <li><p><strong>saturation</strong> (<em>str</em><em>, </em><em>list</em><em>(</em><em>str</em><em>)</em><em>, </em><a class="reference internal" href="#learning_curves.predictor.Predictor" title="learning_curves.predictor.Predictor"><em>Predictor</em></a><em>, </em><em>list</em><em>(</em><a class="reference internal" href="#learning_curves.predictor.Predictor" title="learning_curves.predictor.Predictor"><em>Predictor</em></a><em>)</em>) – Predictor(s) to consider for displaying the saturation on the plot. Can be “all” and “best”.</p></li>
 <li><p><strong>max_scaling</strong> (<em>float</em>) – Order of magnitude added to the order of magnitude of the maximum train set size. Generally, a value of 1-2 is enough.</p></li>
-<li><p><strong>validation</strong> (<em>float</em>) – Percentage of data points to keep for validation of the curve fitting (they will not be used during the fitting but displayed afterwards)</p></li>
+<li><p><strong>validation</strong> (<em>float</em>) – Percentage or number of data points to keep for validation of the curve fitting (they will not be used during the fitting but displayed afterwards)</p></li>
 <li><p><strong>close</strong> (<em>bool</em>) – If True, close the figure before returning it. This is usefull if a lot of plots are being created because Matplotlib won’t close them, potentially leading to warnings.
 If False, the plot will not be closed. This can be desired when working on Jupyter notebooks, so that the plot will be rendered in the output of the cell.</p></li>
 <li><p><strong>uncertainty</strong> (<em>bool</em>) – If True, plot the uncertainty of the best fitted curve.</p></li>
@@ -423,13 +423,15 @@ A threshold must be specified to calculate the optimal training set size.</p>
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.plot_uncertainty">
-<code class="descname">plot_uncertainty</code><span class="sig-paren">(</span><em>P</em>, <em>ax</em>, <em>max_val</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.plot_uncertainty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.plot_uncertainty" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_uncertainty</code><span class="sig-paren">(</span><em>ax</em>, <em>P</em>, <em>start</em>, <em>max_val</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.plot_uncertainty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.plot_uncertainty" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add uncertainty of Predictor curve to a plot.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>P</strong> (<a class="reference internal" href="#learning_curves.predictor.Predictor" title="learning_curves.predictor.Predictor"><em>Predictor</em></a><em>, </em><em>str</em>) – The predictor to use. Uncertainty is based on standard deviation errors on parameters of the Predictor.</p></li>
 <li><p><strong>ax</strong> (<em>Matplotlib.axes</em>) – Figure used to print the uncertainty.</p></li>
+<li><p><strong>P</strong> (<a class="reference internal" href="#learning_curves.predictor.Predictor" title="learning_curves.predictor.Predictor"><em>Predictor</em></a><em>, </em><em>str</em>) – The predictor to use. Uncertainty is based on standard deviation errors on parameters of the Predictor.</p></li>
+<li><p><strong>start</strong> (<em>int</em>) – first value of the x vector</p></li>
+<li><p><strong>max_val</strong> (<em>int</em>) – last value of the x vector</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -577,6 +579,12 @@ This value is calculated if the Predictor is diverging with inverse function.</p
 </div>
 <div class="section" id="module-learning_curves.tools">
 <span id="learning-curves-tools-module"></span><h2>learning_curves.tools module<a class="headerlink" href="#module-learning_curves.tools" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="learning_curves.tools.get_absolute_value">
+<code class="descclassname">learning_curves.tools.</code><code class="descname">get_absolute_value</code><span class="sig-paren">(</span><em>validation</em>, <em>len_vector</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/tools.html#get_absolute_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.tools.get_absolute_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the absolute value of the length of a vector.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="learning_curves.tools.get_scale">
 <code class="descclassname">learning_curves.tools.</code><code class="descname">get_scale</code><span class="sig-paren">(</span><em>val</em>, <em>floor=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/tools.html#get_scale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.tools.get_scale" title="Permalink to this definition">¶</a></dt>

@@ -54,3 +54,11 @@ def update_params(params, strategies):
         if key in params: 
             params[key] += value
     return params
+
+
+def get_absolute_value(validation, len_vector):
+    """ Get the absolute value of the length of a vector. """
+    assert validation >= 0, "validation parameter must be between 0 and 1, or positive integer."
+    if isinstance(validation, float): return int(validation * len_vector)
+    elif isinstance(validation, int): return validation
+    else: raise ValueError("validation parameter must be between 0 and 1, or positive integer.")
