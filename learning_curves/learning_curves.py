@@ -33,9 +33,8 @@ class LearningCurve():
                         lambda x, a, b, c, d    : a - (b*x+d)**c,                  
                         [.9, 1.7, -.5, 0], 
                         lambda x, a, b, c, d    : (-d + (-x + a)**(1/c))/b, 
-                        bounds=([-np.inf, 0, -np.inf, -np.inf], [1, np.inf, 0, 1])
+                        bounds=([-np.inf, 1e-10, -np.inf, -np.inf], [1, np.inf, 0, 1])
                     ),
-                   # 1.        0.001016 -0.115942  0.641653]
 
             Predictor("pow_log",    lambda x, a, b, c, d, m, n : a - (b*x+d)**c + m*np.log(x**n), [.9, 1.7, -.5, 1e-3, 1e-3, 1e-3], diverging=True),
 
@@ -74,7 +73,9 @@ class LearningCurve():
 
             Args:
                 estimator (Object): Must implement a `fit(X,Y)` and `predict(Y)` method.
-                train_sizes (list): See sklearn `learning_curve`_ function documentation. If None, default value will be used: ``[0.001, 0.003, 0.005, 0.007, 0.01, 0.05, 0.09, 0.13, 0.17, 0.2, 0.28, 0.36, 0.44, 0.52, 0.6, 0.68, 0.76, 0.84, 0.92, 1]``
+                X (array): Features to use for prediction
+                Y (array): Values to be predicted
+                train_sizes (list): See sklearn `learning_curve`_ function documentation. If None, np.geomspace will be used with 20 values from 
                 n_split (int): Number of random cross validation calculated for each train size
                 verbose (int): The higher, the more verbose.
                 n_jobs (int): See sklearn `learning_curve`_ function documentation. 
@@ -83,8 +84,7 @@ class LearningCurve():
                 Dict: The resulting object can then be passed to :meth:`plot` function.
         """
         if train_sizes is None:
-            # [0.001, 0.003, 0.005, 0.007, 0.01, 0.05, 0.09, 0.13, 0.17, 0.2, 0.28, 0.36, 0.44, 0.52, 0.6, 0.68, 0.76, 0.84, 0.92, 1]
-            train_sizes = [i/1000 for i in range(1, 9, 2)] + [i/100 for i in range(1, 20, 4)] + [i/50 for i in range(10, 51, 4)]
+            train_sizes = np.geomspace(10**(-get_scale(Y[-1])+1),1,20)
 
         cv = ShuffleSplit(n_splits=n_splits, test_size=test_size)
         t_start = time.perf_counter()
@@ -111,7 +111,7 @@ class LearningCurve():
             Args:
                 pred (Predictor, str, list): Predictor name, "best" or "all", a Predictor, a list of string (Predictor names), a list of Predictors`
             Returns:
-                Predictor: The matching Predictor
+                Predictor, list: The matching Predictor(s)
             Raises:
                 ValueError: If no matching Predictor is found
         """
@@ -211,31 +211,50 @@ class LearningCurve():
 
 
     def eval_fitted_curve(self, validation, **kwargs):
-        """ Split the data points in two sets then fit predictors in the first set and evaluate them using RMSE on the second set. See :meth:`eval_fitted_curve_cust` """
-        if len(self.recorder) == 0: raise RuntimeError("Recorder is empty. You must first compute learning curve data points using the train method.")
-        return self.eval_fitted_curve_cust(self.recorder["train_sizes"], self.recorder["test_scores_mean"], self.recorder["test_scores_std"], validation=validation, **kwargs)
-
-
-    def eval_fitted_curve_cust(self, train_sizes, test_scores_mean, test_scores_std, validation, P="best", fit=True):
-        """ Split the data points in two sets then fit predictors in the first set and evaluate them using RMSE on the second set.
+        """ Split the data points in two sets then fit predictors in the first set and evaluate them using RMSE on the second set. See :meth:`eval_fitted_curve_cust` 
 
             Args:
-                validation (float, int): Percentage or number of samples of the validation set (the highest training sizes will be used).
-                P (Predictor, "best"): Predictor to consider
-                fit (bool): If True, fit the curve of the Predictors.
+                validation (float, int): Percentage or number of samples of the validation set (the highest training sizes will be used for validation (extrapolation)).
+                kwargs (dict): Parameters passed to :meth:`eval_fitted_curve_cust`
             Returns:
                 fit_score (float): The Root Mean Squared Error of the validation set against the fitted curve of the Predictor
         """
-        valid_abs = get_absolute_value(validation, len(train_sizes))
-        train_sizes_val, test_scores_mean_val = train_sizes[-valid_abs:], test_scores_mean[-valid_abs:]
-        train_sizes_fit, test_scores_mean_fit, test_scores_std_fit = train_sizes[0:-valid_abs], test_scores_mean[0:-valid_abs], test_scores_std[0:-valid_abs]
+        if len(self.recorder) == 0: raise RuntimeError("Recorder is empty. You must first compute learning curve data points using the train method.")
+        
+        valid_abs = get_absolute_value(validation, len(self.recorder["train_sizes"]))
+        train_sizes_val      = self.recorder["train_sizes"][-valid_abs:]
+        test_scores_mean_val = self.recorder["test_scores_mean"][-valid_abs:]
+        train_sizes_fit      = self.recorder["train_sizes"][0:-valid_abs]
+        test_scores_mean_fit = self.recorder["test_scores_mean"][0:-valid_abs]
+        test_scores_std_fit  = self.recorder["test_scores_std"][0:-valid_abs]
 
-        predictors = self.predictors if P == "best" else P
+        return self.eval_fitted_curve_cust(train_sizes_fit, test_scores_mean_fit, test_scores_std_fit, train_sizes_val, test_scores_mean_val, **kwargs)
 
+
+    def eval_fitted_curve_cust(self, train_sizes_fit, test_scores_mean_fit, test_scores_std_fit, train_sizes_val, test_scores_mean_val, predictor="best", fit=True):
+        """ Compute the RMSE of of a fitted curve over a validation set.
+
+            Args:
+                train_sizes_fit (array): List of train sizes used for the fitting of the curve
+                test_scores_mean_fit (array): Means computed by the estimator for the train sizes.
+                test_scores_std_fit (array): Standard deviations computed by the estimator for the train sizes.
+                train_sizes_val (array): List of train sizes used for vscoring of the fitting of the curve (the computation of the RMSE).
+                test_scores_mean_val (array): Values computed by the estimator for the validation train sizes.
+                predictor (Predictor, "best"): Predictor to consider
+                fit (bool): If True, perform a fit of the Predictors using the test_scores_mean_fit data points.
+            Returns:
+                fit_score (float): The Root Mean Squared Error of the validation set against the fitted curve of the Predictor
+        """
+        if predictor == "best": 
+            predictors = self.predictors
+        elif isinstance(predictor, Predictor):
+            predictors = [predictor]
+        
         if not isinstance(predictors, list):
-             raise ValueError("P must be a list of Predictors or 'best'.")
+            raise ValueError("predictor parameter must be a list of Predictors or 'best'.")
 
         if fit: self.fit_all_cust(train_sizes_fit, test_scores_mean_fit, predictors, sigma=test_scores_std_fit)
+
         P = self.best_predictor(predictors)
 
         return mean_squared_error(test_scores_mean_val, P(train_sizes_val))**0.5
@@ -374,7 +393,7 @@ class LearningCurve():
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
                   predictor=None, xlim=None, ylim=None, figsize=(12,6), title=None, saturation=None, 
-                  max_scaling=1, validation=0, close=False, uncertainty=False, **kwargs):
+                  max_scaling=1, validation=0, close=True, uncertainty=False, **kwargs):
         """ Plot any training and test learning curves, with optionally fitted functions and saturation.
         
             Args:
@@ -392,13 +411,15 @@ class LearningCurve():
                 validation (float): Percentage or number of data points to keep for validation of the curve fitting (they will not be used during the fitting but displayed afterwards)
                 close (bool): If True, close the figure before returning it. This is usefull if a lot of plots are being created because Matplotlib won't close them, potentially leading to warnings.
                     If False, the plot will not be closed. This can be desired when working on Jupyter notebooks, so that the plot will be rendered in the output of the cell.
-                uncertainty (bool): If True, plot the uncertainty of the best fitted curve.
+                uncertainty (bool): If True, plot the standard deviation of the best fitted curve for the validation data points.
                 kwargs (dict): Parameters that will be forwarded to internal functions.
+            Returns:
+                fig (Matplotlib.figure)
         """
         fig, ax = plt.subplots(1, 1, figsize=figsize)
         if 'title' is not None: ax.set_title(title)
-        ax.set_xlabel("Training examples")
-        ax.set_ylabel("Score")
+        ax.set_xlabel("Training size")
+        ax.set_ylabel("Estimator score")
         ax.grid()
 
         max_train_size = train_sizes[-1] * 1.05 # Extend a bit so that the curves don't stop before the last points.
@@ -420,20 +441,21 @@ class LearningCurve():
         ax.errorbar(train_sizes_fit, test_scores_mean_fit, test_scores_std_fit, fmt='o-', color="g", label="Cross-validation score", elinewidth=1)
 
         # Get the list of Predictors to consider
-        predictors = []
+        predictors_to_fit = []
 
-        if predictor == "best": predictors = self.predictors # If "best", wait for fit_all before retrieving the best Predictor
+        if predictor == "best": predictors_to_fit = self.predictors # If "best", wait for fit_all before retrieving the best Predictor
 
         elif predictor is not None: 
             to_add = self.get_predictor(predictor)
-            predictors += to_add if isinstance(to_add, list) else [to_add]
+            predictors_to_fit += to_add if isinstance(to_add, list) else [to_add]
 
         if saturation is not None and saturation != "best": # If "best", wait for fit_all before retrieving the best Predictor
             saturation = self.get_predictor(saturation)
-            predictors += saturation if isinstance(saturation, list) else [saturation]
+            predictors_to_fit += saturation if isinstance(saturation, list) else [saturation]
 
-        predictors = get_unique_list(predictors) # Remove duplicates
-        self.fit_all_cust(train_sizes_fit, test_scores_mean_fit, predictors, sigma=test_scores_std_fit)
+        # Fitting Predictors
+        predictors_to_fit = get_unique_list(predictors_to_fit) # Remove duplicates
+        self.fit_all_cust(train_sizes_fit, test_scores_mean_fit, predictors_to_fit, sigma=test_scores_std_fit)
         best_p = self.best_predictor()
 
         x_scale = get_scale(max_train_size)
@@ -442,9 +464,9 @@ class LearningCurve():
         x_values = np.linspace(train_sizes[0], max_abs, 50)
 
         # Plot fitted curves
-        if predictor == "best": predictors = [best_p]
+        preds_to_plot = [P for P in predictors_to_fit if P is not None and P.score is not None] if predictor != "best" else [best_p]
 
-        for P in [P for P in predictors if P is not None and P.score is not None]:
+        for P in preds_to_plot:
             best_lbl = best_p == P if isinstance(best_p, Predictor) else False 
             ax = self.plot_fitted_curve(ax, P, x_values, best=best_lbl, **kwargs)
 
@@ -452,15 +474,29 @@ class LearningCurve():
         if saturation == "best": saturation = best_p
         if isinstance(saturation, Predictor): ax = self.plot_saturation(ax, saturation, max_abs, **kwargs)
 
-        # Plot validation of best estimator
+        # Plot validation of best predictor
         if validation > 0:
-            #RMSE = mean_squared_error(test_scores_mean_val, best_p(train_sizes_val))**0.5 # Don't call eval_fitted_curve to prevent refit
-            RMSE = self.eval_fitted_curve_cust(train_sizes, test_scores_mean, test_scores_std, validation, best_p, False)
-            label = f"Fit CV (rmse:{RMSE:.2e})"
-            ax.errorbar(train_sizes_val, test_scores_mean_val, test_scores_std_val, fmt='x', color="r", label=label, elinewidth=1)
+            RMSE = self.eval_fitted_curve(validation=validation, predictor=best_p, fit=False)
+            label = f"Fit CV (rmse:{RMSE:.2e})"          
 
-        # Plot uncertainty of best estimator
-        if uncertainty: ax = self.plot_uncertainty(ax, best_p, train_sizes_val[0], max_train_size)
+            # for P in preds_to_plot:
+            #     f = np.sign(test_scores_mean_val - P(train_sizes_val))
+            #     for i in range(len(f)):
+            #         if all(o >= 0 for o in f[i:]) or all(o < 0 for o in f[i:]):
+            #             print(P.name, i)
+            #             break
+
+            ax.errorbar(train_sizes_val, test_scores_mean_val, test_scores_std_val, fmt='x', color="r", label=label, elinewidth=1)
+            #print(test_scores_mean_val,train_sizes_val,f)
+
+        # Plot standard deviation of best predictor
+        if uncertainty:
+            best_p.get_fit_std_params(train_sizes_val[0], max_abs)
+            y_up =  np.array(best_p(train_sizes_val, *best_p.params_up))
+            # Take care to replace NaN by one in y_up and 0 in y_low
+            y_up[np.isnan(y_up)] = 1
+            y_low = np.nan_to_num(best_p(train_sizes_val, *best_p.params_low))
+            ax.fill_between(train_sizes_val, y_low, y_up, alpha=0.1, color='#f1c40f')
 
         # Set limits
         if ylim is not None: ax.set_ylim(ylim)
@@ -496,7 +532,7 @@ class LearningCurve():
         if scores : label += f" ({score})"
         z = 3 if best else 2
         ls =  best_ls if best else '--'
-        lw = 2 if best else None
+        lw = 2.5 if best else None
         ax.plot(trialX, P(trialX), ls=ls, label=label, zorder=z, linewidth=lw)
         return ax
 
@@ -530,30 +566,9 @@ class LearningCurve():
             ax.text(0.95, opty, f"{round(thresh*100,2)}%", color="#1f77b4", bbox=dict(color="w",alpha=0.8), va='center', ha="center", transform=ax.get_yaxis_transform())
         return ax
 
+    
+    
+        
 
-    def plot_uncertainty(self, ax, P, start, max_val):
-        """ Add uncertainty of Predictor curve to a plot.
 
-            Args:
-                ax (Matplotlib.axes): Figure used to print the uncertainty.
-                P (Predictor, str): The predictor to use. Uncertainty is based on standard deviation errors on parameters of the Predictor.
-                start (int): first value of the x vector
-                max_val (int): last value of the x vector
-            Returns:
-                Matplotlib axes: The updated figure.
-        """
-        if isinstance(P, str): P = self.get_predictor(P)
-        perr = P.get_error_std()
-
-        # Determine upper and lower boundaries based on perr
-        p_upper, p_lower = [], []
-        for i in range(len(P.params)):
-            params = P.params.copy()
-            params[i] += perr[i]
-            factor = 1 if P(max_val) < P(max_val, *params) else -1
-            p_upper.append(P.params[i] + perr[i] * factor)
-            p_lower.append(P.params[i] - perr[i] * factor)
-
-        x = np.linspace(start, max_val, 100)
-        ax.fill_between(x, P(x, *p_lower), P(x, *p_upper), alpha=0.1, color='#f1c40f')
-        return ax
+    

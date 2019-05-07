@@ -29,7 +29,7 @@ def get_scale(val, floor=True):
 
         Examples: 
             get_scale(1.5e-15) > -15 
-            get_scale(1.5e-15) > -14.823908740944319
+            get_scale(1.5e-15, False) > -14.823908740944319
     """
     val = np.log10(np.abs(val))
     return np.floor(val) if floor else val
@@ -60,5 +60,5 @@ def get_absolute_value(validation, len_vector):
     """ Get the absolute value of the length of a vector. """
     assert validation >= 0, "validation parameter must be between 0 and 1, or positive integer."
     if isinstance(validation, float): return int(validation * len_vector)
-    elif isinstance(validation, int): return validation
+    elif np.isscalar(validation) and validation > 0: return validation
     else: raise ValueError("validation parameter must be between 0 and 1, or positive integer.")
