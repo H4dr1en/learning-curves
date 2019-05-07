@@ -11,7 +11,7 @@ def load(path="./lc_data.pkl"):
 def is_strictly_increasing(L):
     """ Returns True if the list contains strictly increasing values. 
     
-        Eg: 
+        Examples: 
             is_strictly_increasing([0,1,2,3,4,5]) > True
             is_strictly_increasing([0,1,2,2,4,5]) > False
             is_strictly_increasing([0,1,2,1,4,5]) > False
@@ -21,12 +21,18 @@ def is_strictly_increasing(L):
     return True
 
 
-def get_scale(val):
+def get_scale(val, floor=True):
     """ Returns the scale of a value. 
-    
-        Eg: get_scale(1e-15) = -15 
+
+        Args:
+            floor (bool): if True, apply np.floor to the result 
+
+        Examples: 
+            get_scale(1.5e-15) > -15 
+            get_scale(1.5e-15, False) > -14.823908740944319
     """
-    return np.floor(np.log10(np.abs(val)))
+    val = np.log10(np.abs(val))
+    return np.floor(val) if floor else val
     
 
 def get_unique_list(predictors):
@@ -41,7 +47,7 @@ def get_unique_list(predictors):
 def update_params(params, strategies):
     """ Update the values of params based on the values in strategies. 
     
-        Eg: update_params(params=dict(val1=1, val2=10), strategies=dict(val1=0.1, val2=-1)
+        Example: update_params(params=dict(val1=1, val2=10), strategies=dict(val1=0.1, val2=-1)
             > {'val1': 1.1, 'val2': 9}
     """
     for key, value in strategies.items():
@@ -50,4 +56,9 @@ def update_params(params, strategies):
     return params
 
 
-    
+def get_absolute_value(validation, len_vector):
+    """ Get the absolute value of the length of a vector. """
+    assert validation >= 0, "validation parameter must be between 0 and 1, or positive integer."
+    if isinstance(validation, float): return int(validation * len_vector)
+    elif np.isscalar(validation) and validation > 0: return validation
+    else: raise ValueError("validation parameter must be between 0 and 1, or positive integer.")
