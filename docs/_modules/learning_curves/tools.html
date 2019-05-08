@@ -158,7 +158,8 @@
   <h1>Source code for learning_curves.tools</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">dill</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">.learning_curves</span> <span class="k">import</span> <span class="n">learning_curve</span>
 
 <div class="viewcode-block" id="load"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.tools.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;./lc_data.pkl&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Load a :class:`learning_curves.LearningCurve` object from disk. &quot;&quot;&quot;</span>
@@ -187,11 +188,11 @@
 
 <span class="sd">        Examples: </span>
 <span class="sd">            get_scale(1.5e-15) &gt; -15 </span>
-<span class="sd">            get_scale(1.5e-15) &gt; -14.823908740944319</span>
+<span class="sd">            get_scale(1.5e-15, False) &gt; -14.823908740944319</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">if</span> <span class="n">floor</span> <span class="k">else</span> <span class="n">val</span></div>
-    
+     
 
 <div class="viewcode-block" id="get_unique_list"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.tools.get_unique_list">[docs]</a><span class="k">def</span> <span class="nf">get_unique_list</span><span class="p">(</span><span class="n">predictors</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Return a list of unique predictors. Two Predictors are equal if they have the same name.&quot;&quot;&quot;</span>
@@ -218,8 +219,9 @@
     <span class="sd">&quot;&quot;&quot; Get the absolute value of the length of a vector. &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">validation</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;validation parameter must be between 0 and 1, or positive integer.&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">validation</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">validation</span> <span class="o">*</span> <span class="n">len_vector</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">validation</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span> <span class="k">return</span> <span class="n">validation</span>
+    <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">validation</span><span class="p">)</span> <span class="ow">and</span> <span class="n">validation</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="n">validation</span>
     <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;validation parameter must be between 0 and 1, or positive integer.&quot;</span><span class="p">)</span></div>
+
 </pre></div>
 
            </div>
