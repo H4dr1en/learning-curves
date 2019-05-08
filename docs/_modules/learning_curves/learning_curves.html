@@ -91,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#find-the-best-predictor">Find the best Predictor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#plot-the-predictors">Plot the Predictors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#predictor-bounds">Predictor bounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html#evaluate-extrapolation-using-mse-validation">Evaluate extrapolation using mse validation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#compare-learning-curves-of-various-models">Compare Learning curves of various models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#save-and-load-learningcurve-instances">Save and load LearningCurve instances</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#find-the-best-training-set-size">Find the best training set size</a></li>
@@ -230,21 +231,22 @@
             <span class="n">dill</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="LearningCurve.get_lc"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.learning_curves.LearningCurve.get_lc">[docs]</a>    <span class="k">def</span> <span class="nf">get_lc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="LearningCurve.get_lc"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.learning_curves.LearningCurve.get_lc">[docs]</a>    <span class="k">def</span> <span class="nf">get_lc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">train_kwargs</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Compute and plot the learning curve. See :meth:`train` and :meth:`plot` functions for parameters.</span>
 <span class="sd">        </span>
 <span class="sd">            Args:</span>
 <span class="sd">                estimator (Object): Must implement a `fit(X,Y)` and `predict(Y)` method.</span>
 <span class="sd">                X (array): Features to use for prediction</span>
 <span class="sd">                Y (array): Values to be predicted</span>
-<span class="sd">                kwargs (dict): See :meth:`train` and :meth:`plot` parameters.</span>
+<span class="sd">                train_kwargs (dict): See :meth:`train` parameters</span>
+<span class="sd">                kwargs (dict): See:meth:`plot` parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="o">**</span><span class="n">train_kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="LearningCurve.train"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.learning_curves.LearningCurve.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">train_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="LearningCurve.train"><a class="viewcode-back" href="../../learning_curves.html#learning_curves.learning_curves.LearningCurve.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">train_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span> <span class="n">n_splits</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Compute the learning curve of an estimator over a dataset.</span>
 
 <span class="sd">            Args:</span>
@@ -255,12 +257,14 @@
 <span class="sd">                n_split (int): Number of random cross validation calculated for each train size</span>
 <span class="sd">                verbose (int): The higher, the more verbose.</span>
 <span class="sd">                n_jobs (int): See sklearn `learning_curve`_ function documentation. </span>
+<span class="sd">                n_samples (int): if train_sizes is None, n_samples is the number of samples of to use for the learning curve.</span>
+<span class="sd">                kwargs (dict): See sklearn `learning_curve`_ function parameters. Invalid parameters raise errors.</span>
 <span class="sd">            Returns:</span>
 <span class="sd">                Dict: The resulting object can then be passed to :meth:`plot` function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">train_sizes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">min_scale</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="n">get_scale</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">))</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">train_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="n">min_scale</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
+            <span class="n">train_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="n">min_scale</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">n_samples</span><span class="p">)</span>
 
         <span class="n">cv</span> <span class="o">=</span> <span class="n">ShuffleSplit</span><span class="p">(</span><span class="n">n_splits</span><span class="o">=</span><span class="n">n_splits</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="n">test_size</span><span class="p">)</span>
         <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
@@ -799,6 +803,8 @@
 <span class="sd">        </span>
 <span class="sd">            Args:</span>
 <span class="sd">                label (str): label to prefix</span>
+<span class="sd">            Returns:</span>
+<span class="sd">                label (str): label prefixed with name, if any.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">label</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{self.name}</span><span class="s2"> - </span><span class="si">{label}</span><span class="s2">&quot;</span></div></div>
     

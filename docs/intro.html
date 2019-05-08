@@ -93,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="#find-the-best-predictor">Find the best Predictor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#plot-the-predictors">Plot the Predictors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#predictor-bounds">Predictor bounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#evaluate-extrapolation-using-mse-validation">Evaluate extrapolation using mse validation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#compare-learning-curves-of-various-models">Compare Learning curves of various models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#save-and-load-learningcurve-instances">Save and load LearningCurve instances</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#find-the-best-training-set-size">Find the best training set size</a></li>
@@ -292,6 +293,28 @@ fixed interval using bounds:</p>
 </div>
 <p>For example, the first parameter (the saturation parameter) is enforced to
 have values between [-inf, 1], because a R2 score cannot be &gt; 1.</p>
+</div>
+<div class="section" id="evaluate-extrapolation-using-mse-validation">
+<h1>Evaluate extrapolation using mse validation<a class="headerlink" href="#evaluate-extrapolation-using-mse-validation" title="Permalink to this headline">¶</a></h1>
+<p>The goodness a fit is calculated using the R2 score. Another metric can be
+used: the mean-squared-error (or root-mean-squared-error). This can be done
+by excluding points from the fitting of the curve and using them for
+validation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">learning_curves</span> <span class="k">as</span> <span class="nn">LC</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="k">import</span> <span class="n">make_regression</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="k">import</span> <span class="n">SGDRegressor</span>
+
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">make_regression</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_informative</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">bias</span><span class="o">=-</span><span class="mi">92</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">lc</span> <span class="o">=</span> <span class="n">LC</span><span class="o">.</span><span class="n">LearningCurve</span><span class="p">()</span>
+<span class="n">lc</span><span class="o">.</span><span class="n">get_lc</span><span class="p">(</span><span class="n">SGDRegressor</span><span class="p">(),</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">predictor</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">validation</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<p><img alt="alt text6" src="_images/learning_curve_doc_valid.png" /></p>
+<p>In this plot we can see that 20% of the points have been excluded from the fitting
+and have been used for calculating a RMSE. This is another indicator that we can
+safely extrapolate this curve and predict the score of the model trained with
+more data.</p>
 </div>
 <div class="section" id="compare-learning-curves-of-various-models">
 <h1>Compare Learning curves of various models<a class="headerlink" href="#compare-learning-curves-of-various-models" title="Permalink to this headline">¶</a></h1>

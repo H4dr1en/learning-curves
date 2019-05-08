@@ -70,21 +70,22 @@ class LearningCurve():
             dill.dump(self, f)
 
 
-    def get_lc(self, estimator, X, Y, **kwargs):
+    def get_lc(self, estimator, X, Y, train_kwargs={}, **kwargs):
         """ Compute and plot the learning curve. See :meth:`train` and :meth:`plot` functions for parameters.
         
             Args:
                 estimator (Object): Must implement a `fit(X,Y)` and `predict(Y)` method.
                 X (array): Features to use for prediction
                 Y (array): Values to be predicted
-                kwargs (dict): See :meth:`train` and :meth:`plot` parameters.
+                train_kwargs (dict): See :meth:`train` parameters
+                kwargs (dict): See:meth:`plot` parameters.
         """
 
-        self.train(estimator, X, Y, **kwargs)
+        self.train(estimator, X, Y, **train_kwargs)
         return self.plot(**kwargs)
 
 
-    def train(self, estimator, X, Y, train_sizes=None, test_size=0.15, n_splits=5, verbose=1, n_jobs=-1, **kwargs):
+    def train(self, estimator, X, Y, train_sizes=None, test_size=0.15, n_splits=5, verbose=1, n_jobs=-1, n_samples=20, **kwargs):
         """ Compute the learning curve of an estimator over a dataset.
 
             Args:
@@ -95,12 +96,14 @@ class LearningCurve():
                 n_split (int): Number of random cross validation calculated for each train size
                 verbose (int): The higher, the more verbose.
                 n_jobs (int): See sklearn `learning_curve`_ function documentation. 
+                n_samples (int): if train_sizes is None, n_samples is the number of samples of to use for the learning curve.
+                kwargs (dict): See sklearn `learning_curve`_ function parameters. Invalid parameters raise errors.
             Returns:
                 Dict: The resulting object can then be passed to :meth:`plot` function.
         """
         if train_sizes is None:
             min_scale = 10**(-get_scale(len(Y))+1)
-            train_sizes = np.geomspace(min_scale,1,20)
+            train_sizes = np.geomspace(min_scale,1,n_samples)
 
         cv = ShuffleSplit(n_splits=n_splits, test_size=test_size)
         t_start = time.perf_counter()
@@ -639,6 +642,8 @@ class LearningCurve():
         
             Args:
                 label (str): label to prefix
+            Returns:
+                label (str): label prefixed with name, if any.
         """
         return label if self.name is None else f"{self.name} - {label}"
     

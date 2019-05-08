@@ -91,6 +91,9 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html#custom-predictors">Custom Predictors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html#find-the-best-predictor">Find the best Predictor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html#plot-the-predictors">Plot the Predictors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#predictor-bounds">Predictor bounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#evaluate-extrapolate-using-mse-validation">Evaluate extrapolate using mse validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#compare-learning-curves-of-various-models">Compare Learning curves of various models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html#save-and-load-learningcurve-instances">Save and load LearningCurve instances</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html#find-the-best-training-set-size">Find the best training set size</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation</a><ul>
@@ -344,12 +347,18 @@ to fit a curve. In that case, you should look at the generated plot to determine
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>label</strong> (<em>str</em>) – label to prefix</p>
 </dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>label prefixed with name, if any.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>label (str)</p>
+</dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.get_lc">
-<code class="descname">get_lc</code><span class="sig-paren">(</span><em>estimator</em>, <em>X</em>, <em>Y</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.get_lc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.get_lc" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_lc</code><span class="sig-paren">(</span><em>estimator</em>, <em>X</em>, <em>Y</em>, <em>train_kwargs={}</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.get_lc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.get_lc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute and plot the learning curve. See <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.train" title="learning_curves.learning_curves.LearningCurve.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train()</span></code></a> and <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.plot" title="learning_curves.learning_curves.LearningCurve.plot"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot()</span></code></a> functions for parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -357,7 +366,8 @@ to fit a curve. In that case, you should look at the generated plot to determine
 <li><p><strong>estimator</strong> (<em>Object</em>) – Must implement a <cite>fit(X,Y)</cite> and <cite>predict(Y)</cite> method.</p></li>
 <li><p><strong>X</strong> (<em>array</em>) – Features to use for prediction</p></li>
 <li><p><strong>Y</strong> (<em>array</em>) – Values to be predicted</p></li>
-<li><p><strong>kwargs</strong> (<em>dict</em>) – See <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.train" title="learning_curves.learning_curves.LearningCurve.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train()</span></code></a> and <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.plot" title="learning_curves.learning_curves.LearningCurve.plot"><code class="xref py py-meth docutils literal notranslate"><span class="pre">plot()</span></code></a> parameters.</p></li>
+<li><p><strong>train_kwargs</strong> (<em>dict</em>) – See <a class="reference internal" href="#learning_curves.learning_curves.LearningCurve.train" title="learning_curves.learning_curves.LearningCurve.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">train()</span></code></a> parameters</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – See:meth:<cite>plot</cite> parameters.</p></li>
 </ul>
 </dd>
 </dl>
@@ -565,7 +575,7 @@ If an RecursionError raises, (None, None, sat_val, threshold) will be returned.<
 
 <dl class="method">
 <dt id="learning_curves.learning_curves.LearningCurve.train">
-<code class="descname">train</code><span class="sig-paren">(</span><em>estimator</em>, <em>X</em>, <em>Y</em>, <em>train_sizes=None</em>, <em>test_size=0.15</em>, <em>n_splits=5</em>, <em>verbose=1</em>, <em>n_jobs=-1</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.train" title="Permalink to this definition">¶</a></dt>
+<code class="descname">train</code><span class="sig-paren">(</span><em>estimator</em>, <em>X</em>, <em>Y</em>, <em>train_sizes=None</em>, <em>test_size=0.15</em>, <em>n_splits=5</em>, <em>verbose=1</em>, <em>n_jobs=-1</em>, <em>n_samples=20</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/learning_curves/learning_curves.html#LearningCurve.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#learning_curves.learning_curves.LearningCurve.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the learning curve of an estimator over a dataset.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -577,6 +587,8 @@ If an RecursionError raises, (None, None, sat_val, threshold) will be returned.<
 <li><p><strong>n_split</strong> (<em>int</em>) – Number of random cross validation calculated for each train size</p></li>
 <li><p><strong>verbose</strong> (<em>int</em>) – The higher, the more verbose.</p></li>
 <li><p><strong>n_jobs</strong> (<em>int</em>) – See sklearn <a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.learning_curve.html#sklearn.model_selection.learning_curve">learning_curve</a> function documentation.</p></li>
+<li><p><strong>n_samples</strong> (<em>int</em>) – if train_sizes is None, n_samples is the number of samples of to use for the learning curve.</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – See sklearn <a class="reference external" href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.learning_curve.html#sklearn.model_selection.learning_curve">learning_curve</a> function parameters. Invalid parameters raise errors.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

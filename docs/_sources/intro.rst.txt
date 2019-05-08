@@ -167,6 +167,33 @@ Output:
 For example, the first parameter (the saturation parameter) is enforced to
 have values between [-inf, 1], because a R2 score cannot be > 1.
 
+Evaluate extrapolation using mse validation
+=========================================
+
+The goodness a fit is calculated using the R2 score. Another metric can be
+used: the mean-squared-error (or root-mean-squared-error). This can be done 
+by excluding points from the fitting of the curve and using them for 
+validation:
+
+::
+
+   import learning_curves as LC
+   from sklearn.datasets import make_regression
+   from sklearn.linear_model import SGDRegressor
+   
+   X, Y = make_regression(n_samples=int(1e4), n_features=50, n_informative=25, bias=-92, noise=100)
+   lc = LC.LearningCurve()
+   lc.get_lc(SGDRegressor(), X, Y, predictor="best", validation=0.2)
+
+Output:
+
+|alt text6|
+
+In this plot we can see that 20% of the points have been excluded from the fitting
+and have been used for calculating a RMSE. This is another indicator that we can
+safely extrapolate this curve and predict the score of the model trained with 
+more data.
+
 Compare Learning curves of various models
 =========================================
 
@@ -277,5 +304,6 @@ you can add to your training set.
 .. |alt text3| image:: ../images/learning_curve_all.png
 .. |alt text4| image:: ../images/learning_curve_fit_sat_all.png
 .. |alt text5| image:: ../images/learning_curve_doc_compare.png
+.. |alt text6| image:: ../images/learning_curve_doc_valid.png
 
 
