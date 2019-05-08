@@ -189,10 +189,10 @@ Output:
 
 |alt text6|
 
-In this plot we can see that 20% of the points have been excluded from the fitting
-and have been used for calculating a RMSE. This is another indicator that we can
-safely extrapolate this curve and predict the score of the model trained with 
-more data.
+In this plot we can see that 20% of the points have been excluded from the 
+fitting and have been used for calculating a RMSE (here, 2,38e-3). This RMSE 
+is another indicator that we can safely extrapolate this curve and predict
+the score of the model trained with more data.
 
 Compare Learning curves of various models
 =========================================
