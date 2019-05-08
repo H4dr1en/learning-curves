@@ -60,39 +60,12 @@ Output:
 
 ![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_all.png)
 
-### Save and load LearningCurve instances
-
-Because `Predictor` contains lambda functions, you can not simply save a `LearningCurve` instance. One possibility is to only save the data points of the curve inside `lc.recorder["data"]` and retrieve then later on. But then the custom predictors are not saved. Therefore it is recommended to use the `save` and `load` methods:
-```
-lc.save("path/to/save.pkl")
-lc = LC.LearningCurve.load("path/to/save.pkl")
-```
-This internally uses the `dill` library to save the `LearningCurve` instance with all the `Predictor`s.
-
-### Find the best training set size
-
-`learning-curves` will help you finding the best training set size by extrapolation of the best fitted curve:
-```
-lc.plot(predictor="all", saturation="best")
-```
-Output:
-
-![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_fit_sat_all.png)
-
-The horizontal red line shows the saturation of the curve. The intersection of the two blue lines shows the best accuracy we can get, given a certain `threshold` (see below).
-
-To retrieve the value of the best training set size:
-```
-lc.threshold(predictor="best", saturation="best")
-```
-Output:
-```
-(0.9589, 31668, 0.9493)
-```
-This tells us that the saturation value (the maximum accuracy we can get from this model without changing any other parameter) is `0.9589`. This value corresponds to an infinite number of samples in our training set! But with a threshold of `0.99` (this parameter can be changed with `threshold=x`), we can have an accuracy `0.9493` if our training set contains `31668` samples.
-
 ## Documentation
 
 The documentation is available [here](https://h4dr1en.github.io/learning-curves/). 
 
 Some functions have their `function_name_cust` equivalent. Calling the function without the `_cust` suffix will internally call the function with the `_cust` suffix with default parameters (such as the data points of the learning curves). Thanks to `kwargs`, you can pass exactly the same parameters to both functions.
+
+## Contributing
+
+PRs, bug reports as well as improvment suggestions are welcomed :)
