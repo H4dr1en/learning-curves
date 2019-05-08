@@ -275,6 +275,6 @@ you can add to your training set.
 .. |alt text2| image:: ../images/learning_curve_simple.png
 .. |alt text3| image:: ../images/learning_curve_all.png
 .. |alt text4| image:: ../images/learning_curve_fit_sat_all.png
-.. |alt text4| image:: ../images/learning_curve_doc_compare.png
+.. |alt text5| image:: ../images/learning_curve_doc_compare.png
 
 
