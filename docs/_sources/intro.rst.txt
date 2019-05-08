@@ -168,7 +168,7 @@ For example, the first parameter (the saturation parameter) is enforced to
 have values between [-inf, 1], because a R2 score cannot be > 1.
 
 Evaluate extrapolation using mse validation
-=========================================
+===========================================
 
 The goodness a fit is calculated using the R2 score. Another metric can be
 used: the mean-squared-error (or root-mean-squared-error). This can be done 
