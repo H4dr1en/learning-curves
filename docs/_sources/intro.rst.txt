@@ -13,9 +13,10 @@ influence the performance of the models (more informations `here`_).
 Such plots help you answer the following questions:
 
 -  Do I have enough data?
--  What would be the best accuracy I would have if I had more data?
--  Can I train my model with less data?
--  Is my training set biased?
+-  Can I train my model with less data without reducing accuracy?
+-  Is my training/validation set biased?
+-  What is the best model for my data?
+-  What is the perfect training size for tuning parameters?
 
 Learning-curves will also help you fitting the learning curve to
 extrapolate and find the saturation value of the curve.
@@ -38,10 +39,13 @@ To get started, you can start with the following code:
 ::
 
    import learning_curves as LC
-   lc = LC.LearningCurve()
-   lc.get_lc(estimator, X, Y)
+   from sklearn.datasets import make_regression
+   from sklearn.linear_model import SGDRegressor
 
-Where ``estimator`` implements ``fit(X,Y)`` and ``predict(X,Y)``.
+   X, Y = make_regression(n_samples=int(1e4), n_features=50, n_informative=25, bias=-92, noise=100)
+   lc = LC.LearningCurve()
+   lc.get_lc(SGDRegressor(), X, Y)
+
 
 Output:
 
@@ -210,7 +214,7 @@ you can add to your training set.
 .. _sklearn's learning curve feature: https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.learning_curve.html
 .. _here: https://www.dataquest.io/blog/learning-curves-machine-learning/
 
-.. |alt text1| image:: ../images/learning_curve_no_fit.png
+.. |alt text1| image:: ../images/learning_curve_doc_get_started.png
 .. |alt text2| image:: ../images/learning_curve_simple.png
 .. |alt text3| image:: ../images/learning_curve_all.png
 .. |alt text4| image:: ../images/learning_curve_fit_sat_all.png

@@ -170,9 +170,10 @@ influence the performance of the models (more informations <a class="reference e
 <p>Such plots help you answer the following questions:</p>
 <ul class="simple">
 <li><p>Do I have enough data?</p></li>
-<li><p>What would be the best accuracy I would have if I had more data?</p></li>
-<li><p>Can I train my model with less data?</p></li>
-<li><p>Is my training set biased?</p></li>
+<li><p>Can I train my model with less data without reducing accuracy?</p></li>
+<li><p>Is my training/validation set biased?</p></li>
+<li><p>What is the best model for my data?</p></li>
+<li><p>What is the perfect training size for tuning parameters?</p></li>
 </ul>
 <p>Learning-curves will also help you fitting the learning curve to
 extrapolate and find the saturation value of the curve.</p>
@@ -189,13 +190,16 @@ extrapolate and find the saturation value of the curve.</p>
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>To get started, you can start with the following code:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">learning_curves</span> <span class="k">as</span> <span class="nn">LC</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="k">import</span> <span class="n">make_regression</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="k">import</span> <span class="n">SGDRegressor</span>
+
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">make_regression</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_informative</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">bias</span><span class="o">=-</span><span class="mi">92</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">lc</span> <span class="o">=</span> <span class="n">LC</span><span class="o">.</span><span class="n">LearningCurve</span><span class="p">()</span>
-<span class="n">lc</span><span class="o">.</span><span class="n">get_lc</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+<span class="n">lc</span><span class="o">.</span><span class="n">get_lc</span><span class="p">(</span><span class="n">SGDRegressor</span><span class="p">(),</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Where <code class="docutils literal notranslate"><span class="pre">estimator</span></code> implements <code class="docutils literal notranslate"><span class="pre">fit(X,Y)</span></code> and <code class="docutils literal notranslate"><span class="pre">predict(X,Y)</span></code>.</p>
 <p>Output:</p>
-<p><img alt="alt text1" src="_images/learning_curve_no_fit.png" /></p>
+<p><img alt="alt text1" src="_images/learning_curve_doc_get_started.png" /></p>
 <p>On this example the green curve suggests that adding more data to the
 training set is likely to improve a bit the model accuracy. The green
 curve also shows a saturation near 0.96. We can easily fit a function to
