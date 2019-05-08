@@ -50,15 +50,12 @@ Here we used a predefined function, `pow`, to fit the green curve. The R2 score 
 
 This also tells us how many data we should use to train our model to maximize performances and accuracy.
 
-### Plot the Predictors
+## And much more!
 
-You can plot any `Predictor`s fitted function with the `plot` function:
-```
-lc.plot(predictor="all")
-```
-Output:
-
-![alt text](https://github.com/H4dr1en/learning-curves/blob/master/images/learning_curve_all.png)
+- Write your [own predictors](https://h4dr1en.github.io/learning-curves/intro.html#custom-predictors)
+- Find the [best Predictor](https://h4dr1en.github.io/learning-curves/intro.html#find-the-best-predictor)
+- Save and load [LearningCurve instances](https://h4dr1en.github.io/learning-curves/intro.html#save-and-load-learningcurve-instances)
+- Compare learning curves of [various models](https://h4dr1en.github.io/learning-curves/intro.html#compare-learning-curves-of-various-models)
 
 ## Documentation
 
