@@ -5,7 +5,7 @@ with open("./README.md", "r") as fh:
 
 setuptools.setup(
     name="learning-curves",
-    version="0.2.3",
+    version="0.3.0",
     author="H4dr1en",
     author_email="h4dr1en@pm.me",
     description="Python module allowing to easily calculate and plot the learning curve of a machine learning model and find the maximum expected accuracy",
@@ -22,7 +22,7 @@ setuptools.setup(
         'Intended Audience :: Science/Research'
     ],
     license='MIT',
-    download_url = 'https://github.com/H4dr1en/learning-curves/archive/0.2.3.tar.gz',
+    download_url = 'https://github.com/H4dr1en/learning-curves/archive/0.3.0.tar.gz',
     keywords = ['Learning', 'curve', 'machine', 'learning', 'saturation', 'accuracy'],
     install_requires=[
         'dill',
