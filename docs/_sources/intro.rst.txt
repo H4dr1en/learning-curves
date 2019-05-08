@@ -52,9 +52,9 @@ Output:
 |alt text1|
 
 On this example the green curve suggests that adding more data to the
-training set is likely to improve a bit the model accuracy. The green
-curve also shows a saturation near 0.96. We can easily fit a function to
-this curve:
+training set is not likely to improve the model accuracy. The green
+curve also shows a saturation near 0.84. We can easily fit a function to
+any curve:
 
 ::
 
@@ -70,10 +70,13 @@ therefore use this curve to extrapolate the evolution of the accuracy
 with the training set size.
 
 This also tells us how many data we should use to train our model to
-maximize performances and accuracy.
+maximize performances and accuracy: near 2000, we achieved 99% of the 
+maximal accuracy we can get for this model.
 
 Custom Predictors
 =================
+
+Predictors are object wrapping the fitting of learning curves.
 
 You can create a ``Predictor`` like this:
 
@@ -144,6 +147,60 @@ function:
 Output:
 
 |alt text3|
+
+Predictor bounds
+================
+
+Each parameter of a ``Predictor`` can be enforced to have values inside a
+fixed interval using bounds:
+
+::
+
+   lc.predictors[0].bounds
+
+Output:
+
+::
+
+   ([-np.inf, 1e-10, -np.inf, -np.inf], [1, np.inf, 0, 1])
+
+For example, the first parameter (the saturation parameter) is enforced to
+have values between [-inf, 1], because a R2 score cannot be > 1.
+
+Compare Learning curves of various models
+=========================================
+
+If you have multiple models, you can plot their learning curves on the same 
+plot:
+
+::
+
+   import learning_curves as LC
+   from sklearn.datasets import make_regression
+   from sklearn.linear_model import SGDRegressor
+   from sklearn.svm import SVR
+   from sklearn.neighbors import KNeighborsRegressor
+   from sklearn.ensemble import RandomForestRegressor
+
+   models = []
+   models.append(("SGDRegressor",SGDRegressor()))
+   models.append(("KNeighborsRegressor",KNeighborsRegressor()))
+   models.append(("SVR",SVR()))
+   models.append(("RandomForestRegressor",RandomForestRegressor()))
+
+   X, Y = make_regression(n_samples=int(1e4), n_features=50, n_informative=25, bias=-92, noise=100)
+
+   lcs = []
+   for name, model in models:
+       lc = LC.LearningCurve(name=name)
+       lc.train(model, X, Y)
+       lcs.append(lc)
+
+   LC.LearningCurve.compare(lcs, what="valid")
+
+Output:
+
+|alt text5|
 
 Save and load LearningCurve instances
 =====================================
@@ -218,5 +275,6 @@ you can add to your training set.
 .. |alt text2| image:: ../images/learning_curve_simple.png
 .. |alt text3| image:: ../images/learning_curve_all.png
 .. |alt text4| image:: ../images/learning_curve_fit_sat_all.png
+.. |alt text4| image:: ../images/learning_curve_doc_compare.png
 
 

@@ -92,6 +92,8 @@
 <li class="toctree-l1"><a class="reference internal" href="#custom-predictors">Custom Predictors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#find-the-best-predictor">Find the best Predictor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#plot-the-predictors">Plot the Predictors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#predictor-bounds">Predictor bounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#compare-learning-curves-of-various-models">Compare Learning curves of various models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#save-and-load-learningcurve-instances">Save and load LearningCurve instances</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#find-the-best-training-set-size">Find the best training set size</a></li>
 <li class="toctree-l1"><a class="reference internal" href="learning_curves.html">Documentation</a></li>
@@ -201,9 +203,9 @@ extrapolate and find the saturation value of the curve.</p>
 <p>Output:</p>
 <p><img alt="alt text1" src="_images/learning_curve_doc_get_started.png" /></p>
 <p>On this example the green curve suggests that adding more data to the
-training set is likely to improve a bit the model accuracy. The green
-curve also shows a saturation near 0.96. We can easily fit a function to
-this curve:</p>
+training set is not likely to improve the model accuracy. The green
+curve also shows a saturation near 0.84. We can easily fit a function to
+any curve:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">predictor</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -214,10 +216,12 @@ R2 score is very close to 1, meaning that the fit is optimal. We can
 therefore use this curve to extrapolate the evolution of the accuracy
 with the training set size.</p>
 <p>This also tells us how many data we should use to train our model to
-maximize performances and accuracy.</p>
+maximize performances and accuracy: near 2000, we achieved 99% of the
+maximal accuracy we can get for this model.</p>
 </div>
 <div class="section" id="custom-predictors">
 <h1>Custom Predictors<a class="headerlink" href="#custom-predictors" title="Permalink to this headline">¶</a></h1>
+<p>Predictors are object wrapping the fitting of learning curves.</p>
 <p>You can create a <code class="docutils literal notranslate"><span class="pre">Predictor</span></code> like this:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span> <span class="o">=</span> <span class="n">Predictor</span><span class="p">(</span><span class="s2">&quot;myPredictor&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="p">:</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
@@ -275,6 +279,51 @@ function:</p>
 <p>Output:</p>
 <p><img alt="alt text3" src="_images/learning_curve_all.png" /></p>
 </div>
+<div class="section" id="predictor-bounds">
+<h1>Predictor bounds<a class="headerlink" href="#predictor-bounds" title="Permalink to this headline">¶</a></h1>
+<p>Each parameter of a <code class="docutils literal notranslate"><span class="pre">Predictor</span></code> can be enforced to have values inside a
+fixed interval using bounds:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">predictors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>For example, the first parameter (the saturation parameter) is enforced to
+have values between [-inf, 1], because a R2 score cannot be &gt; 1.</p>
+</div>
+<div class="section" id="compare-learning-curves-of-various-models">
+<h1>Compare Learning curves of various models<a class="headerlink" href="#compare-learning-curves-of-various-models" title="Permalink to this headline">¶</a></h1>
+<p>If you have multiple models, you can plot their learning curves on the same
+plot:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">learning_curves</span> <span class="k">as</span> <span class="nn">LC</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="k">import</span> <span class="n">make_regression</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="k">import</span> <span class="n">SGDRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="k">import</span> <span class="n">SVR</span>
+<span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="k">import</span> <span class="n">KNeighborsRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">RandomForestRegressor</span>
+
+<span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;SGDRegressor&quot;</span><span class="p">,</span><span class="n">SGDRegressor</span><span class="p">()))</span>
+<span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;KNeighborsRegressor&quot;</span><span class="p">,</span><span class="n">KNeighborsRegressor</span><span class="p">()))</span>
+<span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;SVR&quot;</span><span class="p">,</span><span class="n">SVR</span><span class="p">()))</span>
+<span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;RandomForestRegressor&quot;</span><span class="p">,</span><span class="n">RandomForestRegressor</span><span class="p">()))</span>
+
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">make_regression</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_informative</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">bias</span><span class="o">=-</span><span class="mi">92</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="n">lcs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+    <span class="n">lc</span> <span class="o">=</span> <span class="n">LC</span><span class="o">.</span><span class="n">LearningCurve</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">lc</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="n">lcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lc</span><span class="p">)</span>
+
+<span class="n">LC</span><span class="o">.</span><span class="n">LearningCurve</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="n">lcs</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<p><a href="#id1"><span class="problematic" id="id2">|alt text5|</span></a></p>
+</div>
 <div class="section" id="save-and-load-learningcurve-instances">
 <h1>Save and load LearningCurve instances<a class="headerlink" href="#save-and-load-learningcurve-instances" title="Permalink to this headline">¶</a></h1>
 <p>Because <code class="docutils literal notranslate"><span class="pre">Predictor</span></code> contains lambda functions, you can not simply save
@@ -297,7 +346,7 @@ extrapolation of the best fitted curve:</p>
 </pre></div>
 </div>
 <p>Output:</p>
-<p><img alt="alt text4" src="_images/learning_curve_fit_sat_all.png" /></p>
+<p><img alt="alt text4" src="_images/learning_curve_doc_compare.png" /></p>
 <p>The horizontal red line shows the saturation of the curve. The
 intersection of the two blue lines shows the best accuracy we can get,
 given a certain <code class="docutils literal notranslate"><span class="pre">threshold</span></code> (see below).</p>
