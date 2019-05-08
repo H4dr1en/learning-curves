@@ -6,13 +6,16 @@ import dill
 import copy
 from pathlib import Path
 
+from matplotlib import cm
+from cycler import cycler
+import matplotlib.pyplot as plt
+
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split, ShuffleSplit, learning_curve
 import scipy.optimize as optimize
 from scipy.optimize import OptimizeWarning
 from scipy.special import lambertw
 import numpy as np
-import matplotlib.pyplot as plt
 
 from .tools import *
 from .predictor import Predictor
@@ -20,12 +23,14 @@ from .predictor import Predictor
 
 class LearningCurve():
 
-    def __init__(self, predictors=[], scoring=r2_score):
+    def __init__(self, predictors=[], scoring=r2_score, name=None):
         """ Provide helper functions to calculate, plot and fit learning curves. 
     
-        Args:
-            predictors (list): List of Predictors
-            scoring (Callable): Function used to calculate scores of the model. (Default is sklearn r2_score)."""
+            Args:
+                predictors (list): List of Predictors
+                scoring (Callable): Function used to calculate scores of the model. (Default is sklearn r2_score).
+                name (str): Name of the model (used for comparison with other LearningCurve objects).
+        """
 
         defaults_predictors = [
             Predictor(  
@@ -50,19 +55,30 @@ class LearningCurve():
         self.predictors = get_unique_list(defaults_predictors+predictors)
         self.recorder = {}
         self.scoring = scoring
+        self.name = name
 
 
     def save(self, path="./lc_data.pkl"):
         """ Save the LearningCurve object as a pickle object in disk. 
         
-            It uses the dill library to save the instance because the object contains lambda functions, that can not be pickled otherwise. 
+            It uses the dill library to save the instance because the object contains lambda functions, that can not be pickled otherwise.
+
+            Args:
+                path (str): Path where to save the object. 
         """
         with open(path, 'wb') as f:
             dill.dump(self, f)
 
 
     def get_lc(self, estimator, X, Y, **kwargs):
-        """ Compute and plot the learning curve. See :meth:`train` and :meth:`plot` functions for parameters."""
+        """ Compute and plot the learning curve. See :meth:`train` and :meth:`plot` functions for parameters.
+        
+            Args:
+                estimator (Object): Must implement a `fit(X,Y)` and `predict(Y)` method.
+                X (array): Features to use for prediction
+                Y (array): Values to be predicted
+                kwargs (dict): See :meth:`train` and :meth:`plot` parameters.
+        """
 
         self.train(estimator, X, Y, **kwargs)
         return self.plot(**kwargs)
@@ -79,17 +95,17 @@ class LearningCurve():
                 n_split (int): Number of random cross validation calculated for each train size
                 verbose (int): The higher, the more verbose.
                 n_jobs (int): See sklearn `learning_curve`_ function documentation. 
-                kwargs (dict): Parameters that will be forwarded to internal functions.
             Returns:
                 Dict: The resulting object can then be passed to :meth:`plot` function.
         """
         if train_sizes is None:
-            train_sizes = np.geomspace(10**(-get_scale(Y[-1])+1),1,20)
+            min_scale = 10**(-get_scale(len(Y))+1)
+            train_sizes = np.geomspace(min_scale,1,20)
 
         cv = ShuffleSplit(n_splits=n_splits, test_size=test_size)
         t_start = time.perf_counter()
-        train_sizes, train_scores, test_scores = learning_curve(estimator, X, Y,
-                                                                cv=cv, n_jobs=n_jobs, train_sizes=train_sizes, verbose=verbose)
+        train_sizes, train_scores, test_scores = learning_curve(estimator, X, Y, cv=cv, n_jobs=n_jobs, 
+                                                                train_sizes=train_sizes, verbose=verbose, **kwargs)
         self.recorder = {
             "total_size": len(X),
             "train_sizes": train_sizes,
@@ -141,7 +157,7 @@ class LearningCurve():
             Returns:
                 list: an array of predictors with the updated params and score.
         """
-        return self.fit_all_cust(self.recorder["train_sizes"], self.recorder["test_mean_scores"], self.predictors, sigma=self.recorder["test_scores_std"], **kwargs)
+        return self.fit_all_cust(self.recorder["train_sizes"], self.recorder["test_scores_mean"], self.predictors, sigma=self.recorder["test_scores_std"], **kwargs)
 
 
     def fit_all_cust(self, x, y, predictors, **kwargs):
@@ -314,7 +330,7 @@ class LearningCurve():
         """ Find the training set size providing the highest accuracy up to a predefined threshold for a Predictor having no inverse function. See :meth:`threshold_cust`. """
         assert None not in [threshold, max_scaling, resolution], "Parameter has None value"
 
-        sat_acc = P.get_saturation() # if not P.diverging else y[-1]
+        sat_acc = P.get_saturation()
         desired_acc = sat_acc * threshold
 
         x_max_scale = get_scale(x[-1])
@@ -335,7 +351,6 @@ class LearningCurve():
             if strategies is not None: 
                 params = dict(threshold=threshold, max_scaling=max_scaling, resolution=resolution)
                 params = update_params(params, strategies)
-                #print(f"Can not find an x_thresh. Trying with parameters: {params}", flush=True)
                 try:
                     return self.threshold_cust_approx(P, x, strategies=strategies, **params)
                 except RecursionError:
@@ -376,11 +391,12 @@ class LearningCurve():
         return best_p
 
 
-    def plot(self, predictor=None, **kwargs):
+    def plot(self, predictor=None, figsize=(12,6), **kwargs):
         """ Plot the training and test learning curves of the recorder data, with optionally fitted functions and saturation. See :meth:`plot_cust`:
 
             Args:
                 predictor (str, list(str), Predictor, list(Predictor)): The predictor(s) to use for plotting the fitted curve. Can also be "all" and "best".
+                figsize (2uple): Size of the figure
                 kwargs (dict): Parameters that will be forwarded to internal functions.
             Returns:
                 A Matplotlib figure of the result.
@@ -388,12 +404,18 @@ class LearningCurve():
                 RuntimeError: If the recorder is empty.
         """
         if len(self.recorder) == 0: raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
-        return self.plot_cust(predictor=predictor, **self.recorder, **kwargs)
+
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
+        colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        colors = [colors[0], colors[2]] + colors # learning curve of training set in blue, of validation set in green
+        ax.set_prop_cycle('color', colors)
+
+        return self.plot_cust(predictor=predictor, fig=fig, **self.recorder, **kwargs)
 
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
-                  predictor=None, xlim=None, ylim=None, figsize=(12,6), title=None, saturation=None, 
-                  max_scaling=1, validation=0, close=True, uncertainty=False, **kwargs):
+                  predictor=None, what="both", xlim=None, ylim=None, figsize=(12,6), title=None, saturation=None, 
+                  max_scaling=1, validation=0, close=True, uncertainty=False, fig=None, **kwargs):
         """ Plot any training and test learning curves, with optionally fitted functions and saturation.
         
             Args:
@@ -402,6 +424,7 @@ class LearningCurve():
                 test_scores_mean (list): Test score means(y values).
                 test_scores_std (list): Train score means.
                 predictor (str, list(str), Predictor, list(Predictor)): The predictor(s) to use for plotting the fitted curve. Can be "all" and "best".
+                what ("train", "valid", "both"): learning curves to show
                 xlim (2uple): Limits of the x axis of the plot.
                 ylim (2uple): Limits of the y axis of the plot.
                 figsize (2uple): Size of the figure
@@ -412,11 +435,13 @@ class LearningCurve():
                 close (bool): If True, close the figure before returning it. This is usefull if a lot of plots are being created because Matplotlib won't close them, potentially leading to warnings.
                     If False, the plot will not be closed. This can be desired when working on Jupyter notebooks, so that the plot will be rendered in the output of the cell.
                 uncertainty (bool): If True, plot the standard deviation of the best fitted curve for the validation data points.
+                fig (Matplotlib.figure): A figure on which the learning curve will be drawn. If None, a new one is created.
                 kwargs (dict): Parameters that will be forwarded to internal functions.
             Returns:
                 fig (Matplotlib.figure)
         """
-        fig, ax = plt.subplots(1, 1, figsize=figsize)
+        fig, ax = plt.subplots(1, 1, figsize=figsize) if fig is None else (fig, fig.axes[0])
+
         if 'title' is not None: ax.set_title(title)
         ax.set_xlabel("Training size")
         ax.set_ylabel("Estimator score")
@@ -434,11 +459,18 @@ class LearningCurve():
         else:
             train_sizes_fit, test_scores_mean_fit, test_scores_std_fit = train_sizes, test_scores_mean, test_scores_std
 
-        ax.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha=0.1, color='#1f77b4')
-        ax.fill_between(train_sizes_fit, test_scores_mean_fit - test_scores_std_fit, test_scores_mean_fit + test_scores_std_fit, alpha=0.15, color="g")
-        ax.plot(train_sizes, train_scores_mean, 'o-', color='#1f77b4', label="Training score")
-        #ax.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
-        ax.errorbar(train_sizes_fit, test_scores_mean_fit, test_scores_std_fit, fmt='o-', color="g", label="Cross-validation score", elinewidth=1)
+        
+        # Plot the learning curve of training and validation sets
+        if what in ["train", "both"]:
+            lines = ax.plot(train_sizes, train_scores_mean, 'o-', label=self.get_label("Training score"))
+            ax.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, color=lines[0].get_color(), alpha=0.1)
+
+        if what in ["valid", "both"]:
+            #ax.plot(train_sizes, test_scores_mean, 'o-', color="g", label=self.get_label("Cross-validation score"))
+            errorbar = ax.errorbar(train_sizes_fit, test_scores_mean_fit, test_scores_std_fit, fmt='o-', label=self.get_label("Cross-validation score"), elinewidth=1)
+            ax.fill_between(train_sizes_fit, test_scores_mean_fit - test_scores_std_fit, test_scores_mean_fit + test_scores_std_fit, 
+                        color=errorbar.lines[0].get_color(), alpha=0.15)      
+
 
         # Get the list of Predictors to consider
         predictors_to_fit = []
@@ -486,8 +518,7 @@ class LearningCurve():
             #             print(P.name, i)
             #             break
 
-            ax.errorbar(train_sizes_val, test_scores_mean_val, test_scores_std_val, fmt='x', color="r", label=label, elinewidth=1)
-            #print(test_scores_mean_val,train_sizes_val,f)
+            ax.errorbar(train_sizes_val, test_scores_mean_val, test_scores_std_val, fmt='x', color="r", label=self.get_label(label), elinewidth=1)
 
         # Plot standard deviation of best predictor
         if uncertainty:
@@ -533,7 +564,7 @@ class LearningCurve():
         z = 3 if best else 2
         ls =  best_ls if best else '--'
         lw = 2.5 if best else None
-        ax.plot(trialX, P(trialX), ls=ls, label=label, zorder=z, linewidth=lw)
+        ax.plot(trialX, P(trialX), ls=ls, label=self.get_label(label), zorder=z, linewidth=lw)
         return ax
 
 
@@ -565,8 +596,51 @@ class LearningCurve():
             ax.text(1.02, opty, "{:.2e}".format(optx), va='center', ha="left", bbox=dict(facecolor="w",alpha=0.5), transform=ax.get_yaxis_transform())
             ax.text(0.95, opty, f"{round(thresh*100,2)}%", color="#1f77b4", bbox=dict(color="w",alpha=0.8), va='center', ha="center", transform=ax.get_yaxis_transform())
         return ax
+       
 
-    
+    @staticmethod
+    def compare(lcs, fit=True, figsize=(12,6), colors=None, **kwargs):
+        """ Stack learning curves on a single plot (max 10).
+        
+            Args:
+                lcs (list(LearningCurve)): List of LearningCurves to stack.
+                fit (bool): If True, calls :meth:`LearningCurve.fit_all` on all the learning curve objects.
+                figsize (tuple): Dimensions of the figure
+                colors (cycle, list): cycle of the learning curves colors. A cycler an be created as follows: cycle = cycle('color', ["color1", "color2", ...])
+                kwargs (dict): Dictionary of values that will be passed to each :meth:`LearningCurve.plot` method
+            Returns:
+                fig (Matplotlib.figure): The resulting figure
+        """
+        assert all([isinstance(lc, LearningCurve) for lc in lcs]), "parameters must all be Predictors"
+        assert all([len(lc.recorder) > 0 for lc in lcs]), "All Predictors must have been trained."
+        assert len(lcs)<=10, "Maximum 10 learning curve object can be stacked."
+
+        fig, ax = plt.subplots(1,1, figsize=figsize)
+
+        if colors is None: 
+            colormap = cm.get_cmap("tab20")
+            colors = [colormap(i+1) if i % 2 == 0 else colormap(i-1) for i in range(20)]
+            
+        elif not isinstance(colors, list): 
+            raise TypeError("colors must be as cycle object.")
+
+        cycle = cycler('color', colors)
+        ax.set_prop_cycle(cycle)  
+
+        for lc in lcs:
+            if fit: lc.fit_all()
+            fig = lc.plot_cust(fig=fig, **lc.recorder, **kwargs)
+            
+        return fig
+
+
+    def get_label(self, label):
+        """ Prefix the label with the name of the LearningCurve instance. 
+        
+            Args:
+                label (str): label to prefix
+        """
+        return label if self.name is None else f"{self.name} - {label}"
     
         
 

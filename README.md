@@ -9,6 +9,7 @@ Such plots help you answer the following questions:
  - What would be the best accuracy I would have if I had more data?
  - Can I train my model with less data?
  - Is my training set biased?
+ - What is the best model for my data?
  
  Learning-curves will also help you fitting the learning curve to extrapolate and find the saturation value of the curve.
 
