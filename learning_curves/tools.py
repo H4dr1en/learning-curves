@@ -1,6 +1,7 @@
 import dill
 import numpy as np
-
+import matplotlib.pyplot as plt
+from .learning_curves import learning_curve
 
 def load(path="./lc_data.pkl"):
     """ Load a :class:`learning_curves.LearningCurve` object from disk. """
@@ -33,7 +34,7 @@ def get_scale(val, floor=True):
     """
     val = np.log10(np.abs(val))
     return np.floor(val) if floor else val
-    
+     
 
 def get_unique_list(predictors):
     """ Return a list of unique predictors. Two Predictors are equal if they have the same name."""
@@ -62,3 +63,4 @@ def get_absolute_value(validation, len_vector):
     if isinstance(validation, float): return int(validation * len_vector)
     elif np.isscalar(validation) and validation > 0: return validation
     else: raise ValueError("validation parameter must be between 0 and 1, or positive integer.")
+
