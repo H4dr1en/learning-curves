@@ -227,7 +227,7 @@ extrapolation of the best fitted curve:
 
 ::
 
-   lc.plot(predictor="all", saturation="best")
+   lc.plot(predictor="all", saturation="best", max_scaling=2)
 
 Output:
 
@@ -235,7 +235,8 @@ Output:
 
 The horizontal red line shows the saturation of the curve. The
 intersection of the two blue lines shows the best accuracy we can get,
-given a certain ``threshold`` (see below).
+given a certain ``threshold`` (see below). We can use ``max_scaling`` 
+parameter to extrapolate the curves.
 
 To retrieve the value of the best training set size:
 
