@@ -14,7 +14,6 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split, ShuffleSplit, learning_curve
 import scipy.optimize as optimize
 from scipy.optimize import OptimizeWarning
-from scipy.special import lambertw
 import numpy as np
 
 from .tools import *
@@ -276,7 +275,7 @@ class LearningCurve():
 
         P = self.best_predictor(predictors)
 
-        return mean_squared_error(test_scores_mean_val, P(train_sizes_val))**0.5
+        return mean_squared_error(test_scores_mean_val, P(train_sizes_val)) **0.5
 
 
     def threshold(self, P="best", **kwargs):
@@ -499,7 +498,7 @@ class LearningCurve():
         x_values = np.linspace(train_sizes[0], max_abs, 50)
 
         # Plot fitted curves
-        preds_to_plot = [P for P in predictors_to_fit if P is not None and P.score is not None] if predictor != "best" else [best_p]
+        preds_to_plot = [P for P in predictors_to_fit if P is not None and P.score is not NonRe and not np.isnan(P.score)] if predictor != "best" else [best_p]
 
         for P in preds_to_plot:
             best_lbl = best_p == P if isinstance(best_p, Predictor) else False 
