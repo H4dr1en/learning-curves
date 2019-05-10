@@ -18,6 +18,7 @@ import numpy as np
 
 from .tools import *
 from .predictor import Predictor
+from .monkey_patch import learning_curve_patched
 
 
 class LearningCurve():
@@ -106,8 +107,8 @@ class LearningCurve():
 
         cv = ShuffleSplit(n_splits=n_splits, test_size=test_size)
         t_start = time.perf_counter()
-        train_sizes, train_scores, test_scores = learning_curve(estimator, X, Y, cv=cv, n_jobs=n_jobs, 
-                                                                train_sizes=train_sizes, verbose=verbose, **kwargs)
+        train_sizes, train_scores, test_scores, fit_times, score_times = learning_curve_patched(estimator, X, Y, cv=cv, n_jobs=n_jobs, 
+                                                                                    train_sizes=train_sizes, verbose=verbose, **kwargs)
         self.recorder = {
             "total_size": len(X),
             "train_sizes": train_sizes,
@@ -115,7 +116,9 @@ class LearningCurve():
             "train_scores_std": np.std(train_scores, axis=1),
             "test_scores_mean": np.mean(test_scores, axis=1),
             "test_scores_std": np.std(test_scores, axis=1),
-            "time": time.perf_counter() - t_start
+            "times": time.perf_counter() - t_start,
+            "fit_times": np.mean(fit_times, axis=1),
+            "score_times": np.mean(score_times, axis=1)
         }
 
         gc.collect()
@@ -498,7 +501,7 @@ class LearningCurve():
         x_values = np.linspace(train_sizes[0], max_abs, 50)
 
         # Plot fitted curves
-        preds_to_plot = [P for P in predictors_to_fit if P is not None and P.score is not NonRe and not np.isnan(P.score)] if predictor != "best" else [best_p]
+        preds_to_plot = [P for P in predictors_to_fit if P is not None and P.score is not None and not np.isnan(P.score)] if predictor != "best" else [best_p]
 
         for P in preds_to_plot:
             best_lbl = best_p == P if isinstance(best_p, Predictor) else False 
@@ -645,6 +648,18 @@ class LearningCurve():
                 label (str): label prefixed with name, if any.
         """
         return label if self.name is None else f"{self.name} - {label}"
+
+
+    def plot_time(self, ax):
+        if len(self.recorder) == 0: raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
+
+        ax.scatter(self.recorder["train_sizes"], self.recorder["fit_times"], label="fit times")
+        ax.plot(self.recorder["train_sizes"], self.recorder["fit_times"])
+
+        ax.scatter(self.recorder["train_sizes"], self.recorder["score_times"], label="score times")
+        ax.plot(self.recorder["train_sizes"], self.recorder["score_times"])
+
+        return ax
     
         
 
