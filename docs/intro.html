@@ -97,6 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="#compare-learning-curves-of-various-models">Compare Learning curves of various models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#save-and-load-learningcurve-instances">Save and load LearningCurve instances</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#find-the-best-training-set-size">Find the best training set size</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#compare-the-models-performances">Compare the models performances</a></li>
 <li class="toctree-l1"><a class="reference internal" href="learning_curves.html">Documentation</a></li>
 </ul>
 
@@ -365,14 +366,14 @@ instance with all the <code class="docutils literal notranslate"><span class="pr
 <h1>Find the best training set size<a class="headerlink" href="#find-the-best-training-set-size" title="Permalink to this headline">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">learning-curves</span></code> will help you finding the best training set size by
 extrapolation of the best fitted curve:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">predictor</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">max_scaling</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">predictor</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="mi">31668</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Output:</p>
 <p><img alt="alt text4" src="_images/learning_curve_fit_sat_all.png" /></p>
 <p>The horizontal red line shows the saturation of the curve. The
-intersection of the two blue lines shows the best accuracy we can get,
-given a certain <code class="docutils literal notranslate"><span class="pre">threshold</span></code> (see below). We can use <code class="docutils literal notranslate"><span class="pre">max_scaling</span></code>
+vertical blue lines shows the best accuracy we can get,
+given a certain <code class="docutils literal notranslate"><span class="pre">threshold</span></code> (see below). We can use <code class="docutils literal notranslate"><span class="pre">target</span></code>
 parameter to extrapolate the curves.</p>
 <p>To retrieve the value of the best training set size:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lc</span><span class="o">.</span><span class="n">threshold</span><span class="p">(</span><span class="n">predictor</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">saturation</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">)</span>
@@ -398,6 +399,68 @@ saturation value will then be calculated considering the <code class="docutils l
 parameter of the <code class="docutils literal notranslate"><span class="pre">threshold_cust</span></code> function (see documentation for
 details). You should set this parameter to the maximum number of sample
 you can add to your training set.</p>
+</div>
+<div class="section" id="compare-the-models-performances">
+<h1>Compare the models performances<a class="headerlink" href="#compare-the-models-performances" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">learning-curves</span></code> also keeps track of the time elapsed during the
+computation of the learning curves:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="k">import</span> <span class="n">make_regression</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">RandomForestRegressor</span>
+
+<span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">make_regression</span><span class="p">(</span><span class="n">n_samples</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="mf">1e4</span><span class="p">),</span> <span class="n">n_features</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_informative</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">bias</span><span class="o">=-</span><span class="mi">92</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">estimator</span> <span class="o">=</span> <span class="n">RandomForestRegressor</span><span class="p">()</span>
+
+<span class="n">lc</span><span class="o">=</span><span class="n">LC</span><span class="o">.</span><span class="n">LearningCurve</span><span class="p">()</span>
+<span class="n">lc</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">estimator</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+<span class="n">lc</span><span class="o">.</span><span class="n">plot_time</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<p><img alt="alt text7" src="_images/learning_curve_doc_time.png" /></p>
+<p>As for the learning curves, you can easily compare the performances
+using the <code class="docutils literal notranslate"><span class="pre">LearningCurve.compare_time()</span></code> function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="k">import</span> <span class="n">SGDRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.svm</span> <span class="k">import</span> <span class="n">SVR</span>
+<span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="k">import</span> <span class="n">KNeighborsRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">RandomForestRegressor</span>
+
+<span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;SGDRegressor&quot;</span><span class="p">,</span><span class="n">SGDRegressor</span><span class="p">()))</span>
+<span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;KNeighborsRegressor&quot;</span><span class="p">,</span><span class="n">KNeighborsRegressor</span><span class="p">()))</span>
+<span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;SVR&quot;</span><span class="p">,</span><span class="n">SVR</span><span class="p">()))</span>
+<span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;RandomForestRegressor&quot;</span><span class="p">,</span><span class="n">RandomForestRegressor</span><span class="p">()))</span>
+
+<span class="n">lcs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">progress_bar</span><span class="p">(</span><span class="n">models</span><span class="p">):</span>
+    <span class="n">lc</span><span class="o">=</span><span class="n">LC</span><span class="o">.</span><span class="n">LearningCurve</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">lc</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">lcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lc</span><span class="p">)</span>
+
+<span class="n">LC</span><span class="o">.</span><span class="n">LearningCurve</span><span class="o">.</span><span class="n">compare_time</span><span class="p">(</span><span class="n">lcs</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="s2">&quot;fit&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<p><img alt="alt text8" src="_images/learning_curve_doc_time_all.png" /></p>
+<p>Having the times help you diagnose which model is likely to scale
+better with more data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">lc</span> <span class="ow">in</span> <span class="n">lcs</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">recorder</span><span class="p">[</span><span class="s2">&quot;fit_times_mean&quot;</span><span class="p">],</span> <span class="n">lc</span><span class="o">.</span><span class="n">recorder</span><span class="p">[</span><span class="s2">&quot;test_scores_mean&quot;</span><span class="p">])</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">recorder</span><span class="p">[</span><span class="s2">&quot;fit_times_mean&quot;</span><span class="p">],</span> <span class="n">lc</span><span class="o">.</span><span class="n">recorder</span><span class="p">[</span><span class="s2">&quot;test_scores_mean&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Fit time (s)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Accuracy (r2 score)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Output:</p>
+<p><img alt="alt text9" src="_images/learning_curve_doc_diag.png" /></p>
+<p>With this plot with see that KNeighborsRegressor, altough looking very
+promising and scalable in the previous plot, does not achieve to reach
+an accuracy such as SGDRegressor. SGDRegressor would probably be the
+best model for doing predictions on this dataset.</p>
 </div>
 
 

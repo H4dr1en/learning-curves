@@ -254,15 +254,15 @@ extrapolation of the best fitted curve:
 
 ::
 
-   lc.plot(predictor="all", saturation="best", max_scaling=2)
+   lc.plot(predictor="all", saturation="best", target=31668)
 
 Output:
 
 |alt text4|
 
 The horizontal red line shows the saturation of the curve. The
-intersection of the two blue lines shows the best accuracy we can get,
-given a certain ``threshold`` (see below). We can use ``max_scaling`` 
+vertical blue lines shows the best accuracy we can get,
+given a certain ``threshold`` (see below). We can use ``target`` 
 parameter to extrapolate the curves.
 
 To retrieve the value of the best training set size:
@@ -295,6 +295,82 @@ parameter of the ``threshold_cust`` function (see documentation for
 details). You should set this parameter to the maximum number of sample
 you can add to your training set.
 
+Compare the models performances
+===============================
+
+``learning-curves`` also keeps track of the time elapsed during the 
+computation of the learning curves:
+
+::
+
+   from sklearn.datasets import make_regression
+   from sklearn.ensemble import RandomForestRegressor
+
+   X, Y = make_regression(n_samples=int(1e4), n_features=50, n_informative=25, bias=-92, noise=100)
+   estimator = RandomForestRegressor()
+   
+   lc=LC.LearningCurve()
+   lc.train(estimator, X, Y)
+   lc.plot_time()
+
+Output:
+
+|alt text7|
+
+As for the learning curves, you can easily compare the performances
+using the ``LearningCurve.compare_time()`` function:
+
+::
+
+   from sklearn.linear_model import SGDRegressor
+   from sklearn.svm import SVR
+   from sklearn.neighbors import KNeighborsRegressor
+   from sklearn.ensemble import RandomForestRegressor
+
+   models = []
+   models.append(("SGDRegressor",SGDRegressor()))
+   models.append(("KNeighborsRegressor",KNeighborsRegressor()))
+   models.append(("SVR",SVR()))
+   models.append(("RandomForestRegressor",RandomForestRegressor()))
+
+   lcs = []
+   for name, model in progress_bar(models):
+       lc=LC.LearningCurve(name=name)
+       lc.train(model, X, Y, verbose=10)
+       lcs.append(lc)
+
+   LC.LearningCurve.compare_time(lcs, what="fit")
+
+Output:
+
+|alt text8|
+
+Having the times help you diagnose which model is likely to scale
+better with more data:
+
+::
+
+   import matplotlib.pyplot as plt
+   fig, ax = plt.subplots(1,1, figsize=(12,6))
+
+   for lc in lcs:
+       ax.plot(lc.recorder["fit_times_mean"], lc.recorder["test_scores_mean"])
+       ax.scatter(lc.recorder["fit_times_mean"], lc.recorder["test_scores_mean"], label=lc.name)
+
+   ax.set_xlabel("Fit time (s)")
+   ax.set_ylabel("Accuracy (r2 score)")
+   ax.legend()
+
+Output:
+
+|alt text9|
+
+With this plot with see that KNeighborsRegressor, altough looking very
+promising and scalable in the previous plot, does not achieve to reach
+an accuracy such as SGDRegressor. SGDRegressor would probably be the 
+best model for doing predictions on this dataset.
+
+
 
 .. _sklearn's learning curve feature: https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.learning_curve.html
 .. _here: https://www.dataquest.io/blog/learning-curves-machine-learning/
@@ -305,5 +381,8 @@ you can add to your training set.
 .. |alt text4| image:: ../images/learning_curve_fit_sat_all.png
 .. |alt text5| image:: ../images/learning_curve_doc_compare.png
 .. |alt text6| image:: ../images/learning_curve_doc_valid.png
+.. |alt text7| image:: ../images/learning_curve_doc_time.png
+.. |alt text8| image:: ../images/learning_curve_doc_time_all.png
+.. |alt text9| image:: ../images/learning_curve_doc_diag.png
 
 
