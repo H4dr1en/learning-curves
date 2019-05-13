@@ -56,7 +56,7 @@ This also tells us how many data we should use to train our model to maximize pe
 - Find the [best Predictor](https://h4dr1en.github.io/learning-curves/intro.html#find-the-best-predictor)
 - Compare learning curves of [various models](https://h4dr1en.github.io/learning-curves/intro.html#compare-learning-curves-of-various-models)
 - Evaluate extrapolation using [mse validation](https://h4dr1en.github.io/learning-curves/intro.html#evaluate-extrapolation-using-mse-validation)
-- Evaluate your [models scalability](https://h4dr1en.github.io/learning-curves/intro.html#find-the-best-training-set-size)
+- Evaluate and compare your [models scalability](https://h4dr1en.github.io/learning-curves/intro.html#compare-the-models-performances)
 - Save and load [LearningCurve instances](https://h4dr1en.github.io/learning-curves/intro.html#save-and-load-learningcurve-instances)
 
 ## Documentation
