@@ -117,8 +117,10 @@ class LearningCurve():
             "test_scores_mean": np.mean(test_scores, axis=1),
             "test_scores_std": np.std(test_scores, axis=1),
             "times": time.perf_counter() - t_start,
-            "fit_times": np.mean(fit_times, axis=1),
-            "score_times": np.mean(score_times, axis=1)
+            "fit_times_mean": np.mean(fit_times, axis=1),
+            "fit_times_std": np.std(fit_times, axis=1),
+            "score_times_mean": np.mean(score_times, axis=1),
+            "score_times_std": np.std(score_times, axis=1)
         }
 
         gc.collect()
@@ -420,7 +422,7 @@ class LearningCurve():
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
                   predictor=None, what="both", xlim=None, ylim=None, figsize=(12,6), title=None, saturation=None, 
-                  max_scaling=1, validation=0, close=True, uncertainty=False, fig=None, **kwargs):
+                  target=None, validation=0, close=True, uncertainty=False, fig=None, **kwargs):
         """ Plot any training and test learning curves, with optionally fitted functions and saturation.
         
             Args:
@@ -428,14 +430,14 @@ class LearningCurve():
                 train_scores_std (list): Train score standard deviations.
                 test_scores_mean (list): Test score means(y values).
                 test_scores_std (list): Train score means.
-                predictor (str, list(str), Predictor, list(Predictor)): The predictor(s) to use for plotting the fitted curve. Can be "all" and "best".
+                predictor (str, list(str), Predictor, list(Predictor)): The predictor(s) to use for plotting the fitted curve. Can be "all" or "best".
                 what ("train", "valid", "both"): learning curves to show
                 xlim (2uple): Limits of the x axis of the plot.
                 ylim (2uple): Limits of the y axis of the plot.
                 figsize (2uple): Size of the figure
                 title (str): Title of the figure
-                saturation (str, list(str), Predictor, list(Predictor)): Predictor(s) to consider for displaying the saturation on the plot. Can be "all" and "best".
-                max_scaling (float): Order of magnitude added to the order of magnitude of the maximum train set size. Generally, a value of 1-2 is enough. 
+                saturation (str, list(str), Predictor, list(Predictor)): Predictor(s) to consider for displaying the saturation on the plot. Can be "all" or "best".
+                target (int): Training size to reach. The training size axis will be extended and the fitted curve extrapolated until reaching this value.
                 validation (float): Percentage or number of data points to keep for validation of the curve fitting (they will not be used during the fitting but displayed afterwards)
                 close (bool): If True, close the figure before returning it. This is usefull if a lot of plots are being created because Matplotlib won't close them, potentially leading to warnings.
                     If False, the plot will not be closed. This can be desired when working on Jupyter notebooks, so that the plot will be rendered in the output of the cell.
@@ -495,9 +497,12 @@ class LearningCurve():
         self.fit_all_cust(train_sizes_fit, test_scores_mean_fit, predictors_to_fit, sigma=test_scores_std_fit)
         best_p = self.best_predictor()
 
-        x_scale = get_scale(max_train_size)
-        val = 10**(x_scale + max_scaling)
-        max_abs = val if val > max_train_size else max_train_size
+        if target is not None:
+            max_abs = target if target > max_train_size else max_train_size
+            ax.axvline(x=target, ls='-', color="#1f77b4", lw=1.3)
+        else:
+            max_abs = max_train_size
+
         x_values = np.linspace(train_sizes[0], max_abs, 50)
 
         # Plot fitted curves
@@ -506,23 +511,21 @@ class LearningCurve():
         for P in preds_to_plot:
             best_lbl = best_p == P if isinstance(best_p, Predictor) else False 
             ax = self.plot_fitted_curve(ax, P, x_values, best=best_lbl, **kwargs)
+        
+        if saturation == "best": saturation = best_p
 
         # Plot saturation
-        if saturation == "best": saturation = best_p
-        if isinstance(saturation, Predictor): ax = self.plot_saturation(ax, saturation, max_abs, **kwargs)
+        if isinstance(saturation, Predictor): 
+            if not P.diverging:
+                sat_val = P.get_saturation()
+                err = P.get_error_std()[0]
+                ax.axhline(y=sat_val, c='r', alpha=1, lw=1.3)
+                ax.axhspan(sat_val - err, min(1,sat_val + err), alpha=0.05, color='r')
 
         # Plot validation of best predictor
         if validation > 0:
             RMSE = self.eval_fitted_curve(validation=validation, predictor=best_p, fit=False)
-            label = f"Fit CV (rmse:{RMSE:.2e})"          
-
-            # for P in preds_to_plot:
-            #     f = np.sign(test_scores_mean_val - P(train_sizes_val))
-            #     for i in range(len(f)):
-            #         if all(o >= 0 for o in f[i:]) or all(o < 0 for o in f[i:]):
-            #             print(P.name, i)
-            #             break
-
+            label = f"Fit CV (rmse:{RMSE:.2e})"
             ax.errorbar(train_sizes_val, test_scores_mean_val, test_scores_std_val, fmt='x', color="r", label=self.get_label(label), elinewidth=1)
 
         # Plot standard deviation of best predictor
@@ -536,9 +539,6 @@ class LearningCurve():
 
         # Set limits
         if ylim is not None: ax.set_ylim(ylim)
-            # ymin, ymax = ax.get_ylim()
-            # if ymin < ylim[0]: ax.set_ylim(bottom=ylim[0])
-            # if ymax > ylim[1]: ax.set_ylim(top=ylim[1])
 
         if xlim is not None: ax.set_xlim(xlim)
 
@@ -573,38 +573,8 @@ class LearningCurve():
         return ax
 
 
-    def plot_saturation(self, ax, P, max_abs, alpha=1, lw=1.3, **kwargs):
-        """ Add saturation line to a plot. 
-
-            The saturation line is a red horizontal line that shows the maximum accuracy achievable. This saturation might be unreachable in the case of a converging Predictor
-            (a infinite number of samples would be required). If the Predictor is diverging, the saturation value will be 1 (because the Predictor function can be higher than this value).
-            A threshold must be specified to calculate the optimal training set size.
-        
-            Args:
-                ax (Matplotlib.axes): Figure used to print the curve.
-                P (Predictor): Predictor to use for the computing of the curve.
-                max_abs (float): The maximum training set size value to display in the plot.
-                alpha (float): In [0.0, 1.0]. Controls the opacity of the saturation line.
-                lw (float): line-width of the of the threshold lines.
-                kwargs (dict): Parameters that will be forwarded to internal functions.
-            Returns:
-                Matplotlib axes: The updated figure.
-        """
-        optx, opty, sat, thresh = self.threshold(P=P, **kwargs)
-        if not P.diverging and np.isfinite(sat): 
-            ax.axhline(y=sat, c='r', alpha=alpha, lw=lw)
-            err = np.sqrt(np.diag(P.cov))[0]
-            ax.axhspan(sat - err, min(1,sat + err), alpha=0.05, color='r')        
-        if np.isfinite(optx) and optx < max_abs: ax.axvline(x=optx, ls='-', alpha=alpha, lw=lw)
-        if np.isfinite(opty): ax.axhline(y=opty, ls='-', alpha=alpha, lw=lw)
-        if np.isfinite([thresh,opty]).all(): 
-            ax.text(1.02, opty, "{:.2e}".format(optx), va='center', ha="left", bbox=dict(facecolor="w",alpha=0.5), transform=ax.get_yaxis_transform())
-            ax.text(0.95, opty, f"{round(thresh*100,2)}%", color="#1f77b4", bbox=dict(color="w",alpha=0.8), va='center', ha="center", transform=ax.get_yaxis_transform())
-        return ax
-       
-
     @staticmethod
-    def compare(lcs, fit=True, figsize=(12,6), colors=None, **kwargs):
+    def compare(lcs, fit=True, figsize=(12,6), colors=None, what="both", **kwargs):
         """ Stack learning curves on a single plot (max 10).
         
             Args:
@@ -612,6 +582,7 @@ class LearningCurve():
                 fit (bool): If True, calls :meth:`LearningCurve.fit_all` on all the learning curve objects.
                 figsize (tuple): Dimensions of the figure
                 colors (cycle, list): cycle of the learning curves colors. A cycler an be created as follows: cycle = cycle('color', ["color1", "color2", ...])
+                what ("train", "valid", "both"): curves to show
                 kwargs (dict): Dictionary of values that will be passed to each :meth:`LearningCurve.plot` method
             Returns:
                 fig (Matplotlib.figure): The resulting figure
@@ -622,11 +593,11 @@ class LearningCurve():
 
         fig, ax = plt.subplots(1,1, figsize=figsize)
 
-        if colors is None: 
-            colormap = cm.get_cmap("tab20")
-            colors = [colormap(i+1) if i % 2 == 0 else colormap(i-1) for i in range(20)]
+        if colors is None:
+            colormap = cm.get_cmap("tab20" if what=="both" else "tab10")
+            colors = [colormap(i+1) if i % 2 == 0 else colormap(i-1) for i in range(20 if what=="both" else 10)]
             
-        elif not isinstance(colors, list): 
+        if not isinstance(colors, list): 
             raise TypeError("colors must be as cycle object.")
 
         cycle = cycler('color', colors)
@@ -634,7 +605,7 @@ class LearningCurve():
 
         for lc in lcs:
             if fit: lc.fit_all()
-            fig = lc.plot_cust(fig=fig, **lc.recorder, **kwargs)
+            fig = lc.plot_cust(fig=fig, what=what, **lc.recorder, **kwargs)
             
         return fig
 
@@ -650,18 +621,74 @@ class LearningCurve():
         return label if self.name is None else f"{self.name} - {label}"
 
 
-    def plot_time(self, ax):
+    def plot_time(self, ax=None, what="both", figsize=(12,6)):
+        """ Plot training sizes against fit/score computing times.
+
+            Args:
+                ax (Matplotlib.axes): A figure ax on which the curves will be drawn. If None, a new one will be created.
+                what (str): Value in ["both", "fit", "score"]. Select the curve to show.
+                figsize (2-uple): Dimensions of the figure (ignored if ax is not None).
+            Returns:
+                ax (Matplotlib.axes): A Matplotlib ax of the result.
+        """
         if len(self.recorder) == 0: raise RuntimeError("recorder is empty. You must first compute learning curve data points using the train method.")
 
-        ax.scatter(self.recorder["train_sizes"], self.recorder["fit_times"], label="fit times")
-        ax.plot(self.recorder["train_sizes"], self.recorder["fit_times"])
+        if ax is None: _, ax = plt.subplots(1, 1, figsize=figsize) 
 
-        ax.scatter(self.recorder["train_sizes"], self.recorder["score_times"], label="score times")
-        ax.plot(self.recorder["train_sizes"], self.recorder["score_times"])
+        if what in ["fit", "both"]:
+            ax.scatter(self.recorder["train_sizes"], self.recorder["fit_times_mean"], label=self.get_label("fit"))
+            lines = ax.plot(self.recorder["train_sizes"], self.recorder["fit_times_mean"])
+            ax.fill_between(self.recorder["train_sizes"], 
+                            self.recorder["fit_times_mean"] - self.recorder["fit_times_std"], 
+                            self.recorder["fit_times_mean"] + self.recorder["fit_times_std"], 
+                            color=lines[0].get_color(), alpha=0.15)      
+
+        if what in ["score", "both"]:
+            ax.scatter(self.recorder["train_sizes"], self.recorder["score_times_mean"], label=self.get_label("score"))
+            lines = ax.plot(self.recorder["train_sizes"], self.recorder["score_times_mean"])
+            ax.fill_between(self.recorder["train_sizes"], 
+                            self.recorder["score_times_mean"] - self.recorder["score_times_std"], 
+                            self.recorder["score_times_mean"] + self.recorder["score_times_std"], 
+                            color=lines[0].get_color(), alpha=0.15) 
+
+        ax.set_xlabel("Training size")
+        ax.set_ylabel("Training time (s)")
+
+        ax.legend()
 
         return ax
     
+
+    @staticmethod
+    def compare_time(lcs, what="both", figsize=(12,6), colors=None,  **kwargs):
+        """ Stack times of the computing of the learning curves on a single plot.
         
+            Args:
+                lcs (list(LearningCurve)): List of LearningCurves to stack (max 10).
+                what (str): Value in ["both", "fit", "score"]. Select the curve to show.
+                figsize (tuple): Dimensions of the figure.
+                colors (cycle, list): cycle of the learning curves colors. A cycler can be created as follows: cycle = cycle('color', ["color1", "color2", ...])
+                kwargs (dict): Dictionary of values that will be passed to each :meth:`LearningCurve.plot_time` method
+            Returns:
+                ax (Matplotlib.axes): The resulting figure ax
+        """
+        assert all([isinstance(lc, LearningCurve) for lc in lcs]), "parameters must all be Predictors"
+        assert all([len(lc.recorder) > 0 for lc in lcs]), "All Predictors must have been trained first."
+        assert len(lcs)<=10, "Maximum 10 learning curve object can be stacked."
 
+        _, ax = plt.subplots(1,1, figsize=figsize)
 
-    
+        if colors is None:
+            colormap = cm.get_cmap("tab20" if what=="both" else "tab10")
+            colors = [colormap(i) for i in range(20 if what=="both" else 10)]
+            
+        if not isinstance(colors, list): 
+            raise TypeError("colors must be as cycle object.")
+
+        cycle = cycler('color', colors)
+        ax.set_prop_cycle(cycle)  
+
+        for lc in lcs: 
+            ax = lc.plot_time(ax, what=what, **kwargs)
+            
+        return ax

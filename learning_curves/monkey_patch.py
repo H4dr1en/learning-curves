@@ -165,8 +165,6 @@ def learning_curve_patched(estimator, X, y, groups=None,
         n_cv_folds = out.shape[0] // n_unique_ticks
         out = out.reshape(n_cv_folds, n_unique_ticks, 4)
 
-        print(out)
-
     out = np.asarray(out).transpose((2, 1, 0))
 
     return train_sizes_abs, out[0], out[1], out[2], out[3]
