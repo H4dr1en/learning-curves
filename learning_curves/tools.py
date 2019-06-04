@@ -64,3 +64,7 @@ def get_absolute_value(validation, len_vector):
     elif np.isscalar(validation) and validation > 0: return validation
     else: raise ValueError("validation parameter must be between 0 and 1, or positive integer.")
 
+
+def mean_bias_error(y_trues, y_preds):
+    """ Computes the Mean Bias Error of two vectors. """
+    return np.mean(y_trues - y_preds)
