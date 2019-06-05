@@ -699,7 +699,7 @@ class LearningCurve():
 
         ax.set_xlabel("Training size")
         ax.set_ylabel("Training time (s)")
-
+        ax.grid()
         ax.legend()
 
         return fig
