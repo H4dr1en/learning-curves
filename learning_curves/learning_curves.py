@@ -283,9 +283,8 @@ class LearningCurve():
             predictors = self.predictors
         elif isinstance(predictor, Predictor):
             predictors = [predictor]
-
-        if not isinstance(predictors, list):
-            raise ValueError("predictor parameter must be a list of Predictors or 'best'.")
+        elif not isinstance(predictor, list):
+            raise ValueError(f"predictor parameter must be a list of Predictors or 'best', not {predictor}.")
 
         if fit: 
             self.fit_all_cust(train_sizes_fit, test_scores_mean_fit, predictors, sigma=test_scores_std_fit)
@@ -533,7 +532,7 @@ class LearningCurve():
         # Fitting Predictors
         predictors_to_fit = get_unique_list(predictors_to_fit)  # Remove duplicates
         self.fit_all_cust(train_sizes_fit, test_scores_mean_fit, predictors_to_fit, sigma=test_scores_std_fit)
-        best_p = self.best_predictor()
+        best_p = self.best_predictor(predictors_to_fit)
 
         if target is not None:
             max_abs = target if target > max_train_size else max_train_size
