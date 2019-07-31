@@ -1,3 +1,3 @@
 from .learning_curves import *
 from .tools import load
-from .LearningCurveCV import LearningCurveCV
+from .LearningCurveCombined import LearningCurveCombined

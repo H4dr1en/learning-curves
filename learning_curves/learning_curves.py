@@ -449,7 +449,7 @@ class LearningCurve():
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
                   predictor=None, what="both", xlim=None, ylim=None, figsize=(12, 6), title=None, saturation=None, 
-                  target=None, validation=0, close=True, uncertainty=False, fig=None, **kwargs):
+                  target=None, validation=0, close=True, uncertainty=False, fig=None, alpha=0.1, alpha_fit=1, std=True, **kwargs):
         """ Plot any training and test learning curves, with optionally fitted functions and saturation.
 
             Args:
@@ -474,6 +474,9 @@ class LearningCurve():
                     output of the cell.
                 uncertainty (bool): If True, plot the standard deviation of the best fitted curve for the validation data points.
                 fig (Matplotlib.figure): A figure which the learning curve will be drawn. If None, a new one is created.
+                alpha (float): Controls transparency of the learning curve
+                alpha_fit (float): Controls transparency of the fitted line
+                std (bool): Whether to plot standard deviations of points or not.
                 kwargs (dict): Parameters that will be forwarded to internal functions.
             Returns:
                 fig (Matplotlib.figure)
@@ -505,14 +508,17 @@ class LearningCurve():
 
         # Plot the learning curve of training and validation sets
         if what in ["train", "both"]:
-            lines = ax.plot(train_sizes, train_scores_mean, 'o-', label=self.get_label("Training score"))
-            ax.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, color=lines[0].get_color(), alpha=0.1)
+            lines = ax.plot(train_sizes, train_scores_mean, 'o-', label=self.get_label("Training score"), alpha=alpha)
+            if std is True:
+                ax.fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, 
+                                color=lines[0].get_color(), alpha=0.1)
 
         if what in ["valid", "both"]:
             # ax.plot(train_sizes, test_scores_mean, 'o-', color="g", label=self.get_label("Cross-validation score"))
             errorbar = ax.errorbar(train_sizes_fit, test_scores_mean_fit, test_scores_std_fit, fmt='o-', label=self.get_label("Cross-validation score"),
-                                   elinewidth=1)
-            ax.fill_between(train_sizes_fit, test_scores_mean_fit - test_scores_std_fit, test_scores_mean_fit + test_scores_std_fit,
+                                   elinewidth=1, alpha=alpha)
+            if std is True:
+                ax.fill_between(train_sizes_fit, test_scores_mean_fit - test_scores_std_fit, test_scores_mean_fit + test_scores_std_fit,
                             color=errorbar.lines[0].get_color(), alpha=0.15)
 
         # Get the list of Predictors to consider
@@ -536,7 +542,7 @@ class LearningCurve():
 
         if target is not None:
             max_abs = target if target > max_train_size else max_train_size
-            ax.axvline(x=target, ls='-', color="#1f77b4", lw=1.3)
+            ax.axvline(x=target, ls='--', color="#1f77b4", lw=1.3)
         else:
             max_abs = max_train_size
 
@@ -547,7 +553,7 @@ class LearningCurve():
 
         for P in preds_to_plot:
             best_lbl = best_p == P if isinstance(best_p, Predictor) else False
-            ax = self.plot_fitted_curve(ax, P, x_values, best=best_lbl, **kwargs)
+            ax = self.plot_fitted_curve(ax, P, x_values, best=best_lbl, alpha=alpha_fit, **kwargs)
 
         if saturation == "best":
             saturation = best_p
@@ -566,15 +572,6 @@ class LearningCurve():
             label = f"Fit CV (score:{RMSE:.2e})"
             ax.errorbar(train_sizes_val, test_scores_mean_val, test_scores_std_val, fmt='x', color="r", label=self.get_label(label), elinewidth=1)
 
-        # Plot standard deviation of best predictor
-        if uncertainty:
-            best_p.get_fit_std_params(train_sizes_val[0], max_abs)
-            y_up = np.array(best_p(train_sizes_val, *best_p.params_up))
-            # Take care to replace NaN by one in y_up and 0 in y_low
-            y_up[np.isnan(y_up)] = 1
-            y_low = np.nan_to_num(best_p(train_sizes_val, *best_p.params_low))
-            ax.fill_between(train_sizes_val, y_low, y_up, alpha=0.1, color='#f1c40f')
-
         # Set limits
         if ylim is not None:
             ax.set_ylim(ylim)
@@ -589,7 +586,7 @@ class LearningCurve():
 
         return fig
 
-    def plot_fitted_curve(self, ax, P, x, scores=True, best=False, best_ls='-.', **kwargs):
+    def plot_fitted_curve(self, ax, P, x, scores=True, best=False, best_ls='-.', alpha=1, **kwargs):
         """ Add to figure ax a fitted curve.
 
             Args:
@@ -599,6 +596,7 @@ class LearningCurve():
                 scores (bool): Print the score of each curve fit in the legend if True.
                 best (bool): use a higher zorder to make the curve more visible if True.
                 best_ls (Matplotlib line-style): line-style of the curve whose Predictor is used for computing saturation accuracy.
+                alpha (float): Controls the transparency of the fitted curve
                 kwargs (dict): Parameters that will be forwarded to internal functions.
             Returns:
                 Matplotlib axes: The updated figure.
@@ -611,11 +609,11 @@ class LearningCurve():
         z = 3 if best else 2
         ls = best_ls if best else '--'
         lw = 2.5 if best else None
-        ax.plot(trialX, P(trialX), ls=ls, label=self.get_label(label), zorder=z, linewidth=lw)
+        ax.plot(trialX, P(trialX), ls=ls, label=self.get_label(label), zorder=z, linewidth=lw, alpha=alpha)
         return ax
 
     @staticmethod
-    def compare(lcs, fit=True, figsize=(12, 6), colors=None, what="both", **kwargs):
+    def compare(lcs, fit=True, figsize=(12, 6), colors=None, what="both", fig=None, **kwargs):
         """ Stack learning curves on a single plot (max 10).
 
             Args:
@@ -624,6 +622,7 @@ class LearningCurve():
                 figsize (tuple): Dimensions of the figure
                 colors (cycle, list): cycle of the learning curves colors. A cycler an be created as follows: cycle = cycle('color', ["color1", "color2", ...])
                 what ("train", "valid", "both"): curves to show
+                fig (Matplotlib.figure): The resulting figure
                 kwargs (dict): Dictionary of values that will be passed to each :meth:`LearningCurve.plot` method
             Returns:
                 fig (Matplotlib.figure): The resulting figure
@@ -632,7 +631,10 @@ class LearningCurve():
         assert all([len(lc.recorder) > 0 for lc in lcs]), "All Predictors must have been trained."
         assert len(lcs) <= 10, "Maximum 10 learning curve object can be stacked."
 
-        fig, ax = plt.subplots(1, 1, figsize=figsize)
+        if fig is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
+        else:
+            ax = fig.axes[0]
 
         if colors is None:
             colormap = cm.get_cmap("tab20" if what == "both" else "tab10")
