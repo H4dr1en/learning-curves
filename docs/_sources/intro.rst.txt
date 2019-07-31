@@ -167,6 +167,56 @@ Output:
 For example, the first parameter (the saturation parameter) is enforced to
 have values between [-inf, 1], because a R2 score cannot be > 1.
 
+Average learning curves for better extrapolation
+================================================
+
+Multiple learning curves can be averaged to get a more accurate extrapolation,
+as well as a estimation of the error (standard deviation of the curve). This can
+easily be done using LearningCurveCombined class:
+
+::
+
+    from sklearn.datasets import make_regression
+    from learning_curves import *
+    from xgboost import XGBRegressor
+
+    X, Y = make_regression(500, noise=0.5, bias=0.2, n_informative=50)
+    model = XGBRegressor(tree_method="hist")
+    lc = LearningCurveCombined(10)
+    lc.train(model, X, Y, n_splits=10, test_size=.2)
+    lc.plot(target=2000, figsize=(8,4))
+
+Output:
+
+|alt text10|
+
+In this example, the LearningCurveCombined class computes 10 different learning
+curves and save them internally. Then the extrapolation is calculated by averaging
+each predictor results. To get the score of a particular training size, use the 
+target() method:
+
+::
+
+    lc.target(5000000)
+
+Output:
+
+::
+
+    (array([0.80658311]), array([0.27924702]))
+
+This will give you the averaged scoore (0.8) and the standard deviation (0.279).
+
+We can verifiy this by plotting the actual 10 learning curves computed:
+
+::
+
+    lc.plot_all(figsize=(12,6), what="valid", std=False, alpha=.1, alpha_fit=.5, target=2000, predictor="best", legend=False)
+
+Output:
+
+|alt text11|
+
 Evaluate extrapolation using mse validation
 ===========================================
 
@@ -384,5 +434,7 @@ best model for doing predictions on this dataset.
 .. |alt text7| image:: ../images/learning_curve_doc_time.png
 .. |alt text8| image:: ../images/learning_curve_doc_time_all.png
 .. |alt text9| image:: ../images/learning_curve_doc_diag.png
+.. |alt text10| image:: ../images/learning_curve_doc_combined.png
+.. |alt text11| image:: ../images/learning_curve_doc_combined_all.png
 
 

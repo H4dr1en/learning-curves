@@ -1,6 +1,7 @@
 import dill
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
 from .learning_curves import learning_curve
 
 def load(path="./lc_data.pkl"):
@@ -64,3 +65,18 @@ def get_absolute_value(validation, len_vector):
     elif np.isscalar(validation) and validation > 0: return validation
     else: raise ValueError("validation parameter must be between 0 and 1, or positive integer.")
 
+
+def mean_bias_error(y_trues, y_preds):
+    """ Computes the Mean Bias Error of two vectors. """
+    return np.mean(y_trues - y_preds)
+
+def split(array, start, end, validation=None, step=1):
+    """ Split arrays in an object with the possibility of keeping rightmost elements of arrays 
+        Each array will be resized as follows: newArray = oldArray[start:end:step] (+ oldArray[-validation:])    
+    """
+    array = copy.deepcopy(array)
+    for obj in array:
+        if isinstance(array[obj], (list, np.ndarray)):
+            array[obj] = (np.concatenate((array[obj][start:end:step], array[obj][-validation:]))
+                          if validation else array[obj][start:end:step])
+    return array
