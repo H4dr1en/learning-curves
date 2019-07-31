@@ -55,13 +55,14 @@ This also tells us how many data we should use to train our model to maximize pe
 - Write your [own predictors](https://h4dr1en.github.io/learning-curves/intro.html#custom-predictors)
 - Find the [best Predictor](https://h4dr1en.github.io/learning-curves/intro.html#find-the-best-predictor)
 - Compare learning curves of [various models](https://h4dr1en.github.io/learning-curves/intro.html#compare-learning-curves-of-various-models)
+- Extrapolate learning curve [using multiple instances](https://h4dr1en.github.io/learning-curves/intro.html#average-learning-curves-for-better-extrapolation)
 - Evaluate extrapolation using [mse validation](https://h4dr1en.github.io/learning-curves/intro.html#evaluate-extrapolation-using-mse-validation)
 - Evaluate and compare your [models scalability](https://h4dr1en.github.io/learning-curves/intro.html#compare-the-models-performances)
 - Save and load [LearningCurve instances](https://h4dr1en.github.io/learning-curves/intro.html#save-and-load-learningcurve-instances)
 
 ## Documentation
 
-The documentation is available [here](https://h4dr1en.github.io/learning-curves/). 
+The documentation is available [here](https://h4dr1en.github.io/learning-curves/).
 
 Some functions have their `function_name_cust` equivalent. Calling the function without the `_cust` suffix will internally call the function with the `_cust` suffix with default parameters (such as the data points of the learning curves). Thanks to `kwargs`, you can pass exactly the same parameters to both functions.
 
