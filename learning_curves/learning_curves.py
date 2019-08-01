@@ -449,7 +449,7 @@ class LearningCurve():
 
     def plot_cust(self, train_sizes, train_scores_mean, train_scores_std, test_scores_mean, test_scores_std,
                   predictor=None, what="both", xlim=None, ylim=None, figsize=(12, 6), title=None, saturation=None, 
-                  target=None, validation=0, close=True, uncertainty=False, fig=None, alpha=0.1, alpha_fit=1, std=True, **kwargs):
+                  target=None, validation=0, close=True, uncertainty=False, fig=None, alpha=1, alpha_fit=1, std=True, **kwargs):
         """ Plot any training and test learning curves, with optionally fitted functions and saturation.
 
             Args:
