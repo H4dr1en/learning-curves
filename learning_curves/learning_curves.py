@@ -34,30 +34,31 @@ class LearningCurve():
 
         defaults_predictors = [
             Predictor("pow",
-                      lambda x, a, b, c, d: a - (b * x + d)**c,          
-                      [.9, 1.7, -.5, 0],
-                      lambda x, a, b, c, d: (-d + (-x + a)**(1 / c)) / b),  # bounds=([-np.inf, 1e-10, -np.inf, -np.inf], [1, np.inf, 0, 1])
-
+                      lambda x, a, b, c, d: a - 1 / ( x/b - d)**c, 
+                      [1, 1, 1, 1],
+                      lambda x, a, b, c, d: b * ( 1 / (a-x)**(1/c) + d)
+                    ),
+            Predictor("inv",
+                      lambda x, a, b, d: a / (1 + b/(x-d)), 
+                      [1, 1, 1],
+                      lambda x, a, b, d: b / (a/x - 1) + d
+                    ),
+            Predictor("inv_log",
+                      lambda x, a, b, c, d: a - b/np.log(x-d)**c,          
+                      [1, 1, 1, 1],
+                      lambda x, a, b, c, d: np.exp((b / (a-x))**(1/c) ) + d
+                    ),
             Predictor("pow_log",
-                      lambda x, a, b, c, d, m, n: a - (b * x + d)**c + m * np.log(x**n),
-                      [.9, 1.7, -.5, 1e-3, 1e-3, 1e-3], 
-                      diverging=True),
-
-            Predictor("pow_log_2",
-                      lambda x, a, b, c: a / (1 + (x / np.exp(b))**c),      
-                      [.9, 1.7, -.5],
-                      lambda x, a, b, c: np.exp(b) * (a / x - 1)**(1 / c)),
-
-            Predictor("inv_log",    
-                      lambda x, a, b: a - b / np.log(x),       
-                      [.9, 1.6],
-                      lambda x, a, b: np.exp(b / (a - x))),
-
-            Predictor("exp",        
-                      lambda x, a, b, c: np.exp((a - 1) + b / x + c * np.log(x)),
-                      [.9, -1e3, 1e-3],
-                      diverging=True)  # c = 0 -> convergence
-        ]
+                      lambda x, a, b, c, d, m, n: a - 1 / (x/b - d)**c + m*np.log(x**n),          
+                      [1, 1, 1, 1, 1e-2, 1e-2],
+                      diverging=True
+                  ),
+            Predictor("inv_2",
+                      lambda x, a, b, d, e: a / (e + b/(x-d)),          
+                      [1, 1, 1, 1],
+                      lambda x, a, b, d, e: b / (a/x - e) + d
+                    )
+        ]   
 
         self.predictors = get_unique_list(defaults_predictors + predictors)
         self.recorder = {}
