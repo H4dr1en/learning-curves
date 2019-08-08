@@ -36,7 +36,7 @@ class LearningCurve():
             Predictor("pow",
                       lambda x, a, b, c, d: a - 1 / ( x/b - d)**c, 
                       [1, 1, 1, 1],
-                      lambda x, a, b, c, d: b * ( 1 / (a-x)**(1/c) + d)
+                      lambda x, a, b, c, d: b * ( 1 / (a-x)**(1/c) + d),
                     ),
             Predictor("inv",
                       lambda x, a, b, d: a / (1 + b/(x-d)), 
@@ -51,7 +51,8 @@ class LearningCurve():
             Predictor("pow_log",
                       lambda x, a, b, c, d, m, n: a - 1 / (x/b - d)**c + m*np.log(x**n),          
                       [1, 1, 1, 1, 1e-2, 1e-2],
-                      diverging=True
+                      diverging=True,
+                      bounds=([-np.inf, 0, 0, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
                   ),
             Predictor("inv_2",
                       lambda x, a, b, d, e: a / (e + b/(x-d)),          
