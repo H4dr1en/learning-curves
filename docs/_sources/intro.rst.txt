@@ -107,13 +107,33 @@ By default, 5 ``Predictors`` are instantiated:
 
 ::
 
-   self.predictors = [
-       Predictor("pow",        lambda x, a, b, c, d    : a - (b*x+d)**c,                [1, 1.7, -.5, 1e-3]),
-       Predictor("pow_log",    lambda x, a, b, c, m, n : a - b*x**c + m*np.log(x**n),   [1, 1.7, -.5, 1e-3, 1e-3], diverging=True),
-       Predictor("pow_log_2",  lambda x, a, b, c       : a / (1 + (x/np.exp(b))**c),    [1, 1.7, -.5]),
-       Predictor("inv_log",    lambda x, a, b          : a - b/np.log(x),               [1, 1.6]),
-       Predictor("exp",        lambda x, a, b, c       : np.exp((a-1)+b/x +c*np.log(x)),[.9, -1e3, 1e-3], diverging=True)
-   ]
+    defaults_predictors = [
+            Predictor("pow",
+                      lambda x, a, b, c, d: a - 1 / ( x/b - d)**c, 
+                      [1, 1, 1, 1],
+                      lambda x, a, b, c, d: b * ( 1 / (a-x)**(1/c) + d)
+                    ),
+            Predictor("inv",
+                      lambda x, a, b, d: a / (1 + b/(x-d)), 
+                      [1, 1, 1],
+                      lambda x, a, b, d: b / (a/x - 1) + d
+                    ),
+            Predictor("inv_log",
+                      lambda x, a, b, c, d: a - b/np.log(x-d)**c,          
+                      [1, 1, 1, 1],
+                      lambda x, a, b, c, d: np.exp((b / (a-x))**(1/c) ) + d
+                    ),
+            Predictor("pow_log",
+                      lambda x, a, b, c, d, m, n: a - 1 / (x/b - d)**c + m*np.log(x**n),          
+                      [1, 1, 1, 1, 1e-2, 1e-2],
+                      diverging=True
+                  ),
+            Predictor("inv_2",
+                      lambda x, a, b, d, e: a / (e + b/(x-d)),          
+                      [1, 1, 1, 1],
+                      lambda x, a, b, d, e: b / (a/x - e) + d
+                    )
+        ]   
 
 Some predictors perform better (R2 score is closer to 1) than others,
 depending on the dataset, the model and the value to be preditected.
